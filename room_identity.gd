@@ -66,13 +66,13 @@ func tuned_material(source: ShaderMaterial,id: int) -> ShaderMaterial:
 	if material_cache.has(key):return material_cache[key]
 	var mat:=source.duplicate(true) as ShaderMaterial
 	var values:=profile(id)
-	mat.set_shader_parameter("grime_amount",values.grime)
-	mat.set_shader_parameter("wetness",values.wet)
-	mat.set_shader_parameter("rust_amount",values.rust)
-	mat.set_shader_parameter("algae_amount",values.algae)
-	mat.set_shader_parameter("mineral_amount",values.mineral)
-	mat.set_shader_parameter("wear_amount",values.wear)
-	mat.set_shader_parameter("surface_seed",values.seed)
+	mat.set_shader_parameter("grime_amount",values["grime"])
+	mat.set_shader_parameter("wetness",values["wet"])
+	mat.set_shader_parameter("rust_amount",values["rust"])
+	mat.set_shader_parameter("algae_amount",values["algae"])
+	mat.set_shader_parameter("mineral_amount",values["mineral"])
+	mat.set_shader_parameter("wear_amount",values["wear"])
+	mat.set_shader_parameter("surface_seed",values["seed"])
 	material_cache[key]=mat
 	return mat
 
@@ -100,26 +100,28 @@ func patch(at: Vector3,size: Vector2,rotation: Vector3,color: Color,density: flo
 	node.visibility_range_end=38
 	add_child(node)
 
-func wall_marks(center: Vector3,half_width: float,front: float,back: float,base_y: float,color: Color,seed: float) -> void:
+func wall_marks(center: Vector3,half_width: float,front: float,back: float,color: Color,seed: float) -> void:
 	for side in [-1.0,1.0]:
 		for i in range(3):
 			var t:=float(i+1)/4.0
-			var z:=lerpf(front,back,t)+sin(seed+i)*0.8
-			patch(center+Vector3(side*(half_width-0.025),base_y+0.75+0.55*i,z),Vector2(1.1+0.35*i,0.75+0.22*i),Vector3(0,side*PI/2,0),color,0.76,seed+i*2.3)
+			var local_z:=lerpf(front,back,t)+sin(seed+i)*0.8
+			var at:=Vector3(center.x+side*(half_width-0.025),center.y+0.75+0.55*i,center.z+local_z)
+			patch(at,Vector2(1.1+0.35*i,0.75+0.22*i),Vector3(0,side*PI/2,0),color,0.76,seed+i*2.3)
 	for i in range(3):
-		var x:=lerpf(-half_width*0.6,half_width*0.6,float(i)/2.0)
-		var z:=lerpf(front+1.0,back-1.0,0.25+0.25*i)
-		patch(center+Vector3(x,0.024,z),Vector2(0.85+0.25*i,1.4),Vector3(-PI/2,0,0),color.darkened(0.18),0.7,seed+9+i)
+		var local_x:=lerpf(-half_width*0.6,half_width*0.6,float(i)/2.0)
+		var local_z:=lerpf(front+1.0,back-1.0,0.25+0.25*i)
+		var at:=Vector3(center.x+local_x,center.y+0.024,center.z+local_z)
+		patch(at,Vector2(0.85+0.25*i,1.4),Vector3(-PI/2,0,0),color.darkened(0.18),0.7,seed+9+i)
 
 func build_marks() -> void:
 	var mushroom: Vector3=game.atmosphere.mushroom_position
-	wall_marks(Vector3.ZERO,5.95,-3.8,4.5,0.0,Color("465a51"),1.0)
-	wall_marks(mushroom,13.0,-10.1,10.1,mushroom.y,Color("315444"),3.0)
-	wall_marks(mushroom+Vector3(0,0,-26),11.35,-13.9,13.5,mushroom.y,Color("6d442b"),5.0)
+	wall_marks(Vector3.ZERO,5.95,-3.8,4.5,Color("465a51"),1.0)
+	wall_marks(mushroom,13.0,-10.1,10.1,Color("315444"),3.0)
+	wall_marks(mushroom+Vector3(0,0,-26),11.35,-13.9,13.5,Color("6d442b"),5.0)
 	var combat_origin:=anchor(game.combat,"origin",mushroom+Vector3(0,0,-96))
-	wall_marks(combat_origin,11.45,-27.0,-0.9,combat_origin.y,Color("714331"),7.0)
+	wall_marks(combat_origin,11.45,-27.0,-0.9,Color("714331"),7.0)
 	var simon_origin:=anchor(game.simon,"origin",mushroom+Vector3(0,0,-128))
-	wall_marks(simon_origin,8.45,-23.0,-1.0,simon_origin.y,Color("4d5550"),9.0)
+	wall_marks(simon_origin,8.45,-23.0,-1.0,Color("4d5550"),9.0)
 
 func accent(at: Vector3,color: Color,energy: float,reach: float) -> void:
 	var light:=OmniLight3D.new();light.position=at
@@ -139,10 +141,14 @@ func build_lighting_identity() -> void:
 	var simon_origin:=anchor(game.simon,"origin",mushroom+Vector3(0,0,-128))
 	accent(simon_origin+Vector3(0,1.8,-11),Color("6e8f8a"),0.28,5.5)
 
+func polish_quality() -> int:
+	for child in game.get_children():
+		if child.get_script()!=null and child.get_script().resource_path=="res://polish.gd":
+			return int(child.get("quality"))
+	return 1
+
 func _process(_delta: float) -> void:
 	if not built:return
-	var polish:=game.get_node_or_null("Polish")
-	var quality:=1
-	if polish!=null:quality=int(polish.get("quality"))
+	var quality:=polish_quality()
 	for light in accents:
 		if is_instance_valid(light):light.visible=quality>0 and not game.paused
