@@ -111,7 +111,7 @@ func show_panel() -> void:
 	hint.text="Espace / E — continuer     Échap — passer le prologue"
 
 func text_complete() -> bool:
-	return body.visible_characters>=full_text.length()
+	return body.visible_characters<0 or body.visible_characters>=full_text.length()
 
 func advance() -> void:
 	if not text_complete():
