@@ -3,6 +3,7 @@ extends Node
 ## It pauses gameplay and lets the player control the reading pace.
 var game: Node
 var active := false
+var armed_new_game := false
 var layer: CanvasLayer
 var backdrop: ColorRect
 var title: Label
@@ -44,6 +45,18 @@ func _ready() -> void:
 	game=get_parent()
 	build_ui()
 	layer.hide()
+	call_deferred("bind_front_end")
+
+func bind_front_end() -> void:
+	# FrontEnd is created dynamically by main.gd after this scene child becomes ready.
+	for _i in range(16):
+		await get_tree().process_frame
+		if game.front_end!=null and game.front_end.new_button!=null:break
+	if game.front_end==null or game.front_end.new_button==null:return
+	game.front_end.new_button.pressed.connect(func():armed_new_game=true)
+	game.front_end.continue_button.pressed.connect(func():armed_new_game=false)
+	if game.front_end.confirmation!=null:
+		game.front_end.confirmation.canceled.connect(func():armed_new_game=false)
 
 func font() -> Font:
 	return preload("res://fonts/Interface.ttf")
@@ -109,7 +122,10 @@ func _input(event: InputEvent) -> void:
 		advance();get_viewport().set_input_as_handled()
 
 func _process(delta: float) -> void:
-	if not active:return
+	if not active:
+		if armed_new_game and game.front_end!=null and not game.front_end.active:
+			armed_new_game=false;begin()
+		return
 	# Keep gameplay frozen even if another UI system briefly toggles the flag.
 	game.paused=true
 	if not text_complete():
