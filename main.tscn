@@ -1,6 +1,11 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
-[ext_resource type="Script" path="res://main.gd" id="1"]
+[ext_resource type="Script" path="res://main.gd" id="1_main"]
+[ext_resource type="Script" path="res://debug_overlay.gd" id="2_debug"]
 
 [node name="DernierePorte" type="Node3D"]
-script = ExtResource("1")
+script = ExtResource("1_main")
+
+[node name="FinitionEtDiagnostic" type="CanvasLayer" parent="."]
+layer = 120
+script = ExtResource("2_debug")
