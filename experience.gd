@@ -35,6 +35,7 @@ func _ready() -> void:
 func move_player(delta: float,direction: Vector3,speed: float) -> void:
  if game.player.position.distance_to(last_position)>3:grace=0;buffer=0
  var grounded: bool=game.player.is_on_floor()
+ var fall_speed:=maxf(0.0,-game.player.velocity.y)
  grace=0.12 if grounded else maxf(0,grace-delta)
  buffer=maxf(0,buffer-delta)
  if Input.is_action_just_pressed("jump"):buffer=0.14
@@ -45,7 +46,14 @@ func move_player(delta: float,direction: Vector3,speed: float) -> void:
  else:game.player.velocity.y=0
  if buffer>0 and grace>0 and not game.actions.crouched:
   game.player.velocity.y=5.8;buffer=0;grace=0
- game.player.move_and_slide();last_position=game.player.position
+ game.player.move_and_slide()
+ if not grounded and game.player.is_on_floor() and fall_speed>4.2:
+  var impact:=clampf((fall_speed-4.2)/28.0,0.025,0.12)
+  if game.third_person!=null and game.third_person.has_method("shake"):
+   game.third_person.shake(impact,0.10+impact*0.35)
+  if fall_speed>8.0 and game.has_method("pulse_post_fx"):
+   game.pulse_post_fx(clampf((fall_speed-8.0)/28.0,0.05,0.16),0.10)
+ last_position=game.player.position
 
 func hit(lethal: bool) -> void:
  marker.remaining=0.35;marker.lethal=lethal;marker.queue_redraw()
