@@ -5,8 +5,10 @@ var spots: Array[SpotLight3D] = []
 var quality := 1
 var exposure := 1.0
 var timer := 0.0
+var visual_clock := 0.0
 var was_editing := false
 const LIGHT_LIMITS := [4,6,7,8]
+const BASE_FOG_DENSITY := 0.0045
 var selected_lights: Array[Light3D]=[]
 
 func _ready() -> void:
@@ -57,6 +59,8 @@ func practical(at: Vector3,color: Color,energy: float,reach: float) -> void:
 	spot.light_color=color;spot.light_energy=energy;spot.spot_range=reach;spot.spot_angle=62
 	spot.light_color=spot.light_color.lerp(Color(0.91,0.92,0.87),0.35)
 	spot.spot_attenuation=0.5;spot.shadow_bias=0.06;spot.shadow_normal_bias=0.5
+	spot.set_meta("nacre_base_energy",energy)
+	spot.set_meta("nacre_flicker_phase",float(spots.size())*1.73+at.x*0.17+at.z*0.11)
 	add_child(spot);spots.append(spot)
 	spot.add_to_group("nacre_dynamic_light");spot.set_meta("nacre_light_priority",1)
 	var case_mesh:=BoxMesh.new();case_mesh.size=Vector3(0.65,0.14,0.4)
@@ -81,7 +85,7 @@ func apply_settings() -> void:
 	environment.tonemap_mode=Environment.TONE_MAPPER_FILMIC
 	environment.fog_enabled=quality>0
 	environment.fog_light_color=Color("334947");environment.fog_light_energy=0.35
-	environment.fog_density=0.0045
+	environment.fog_density=BASE_FOG_DENSITY
 	# Gentle bloom makes the cyan signs and spores glow into the mist without
 	# washing out the dark room. Compatibility renderer supports this pass.
 	environment.glow_enabled=quality>=1
@@ -106,6 +110,29 @@ func apply_settings() -> void:
 	if details!=null:details.set_quality(quality)
 	update_light_budget()
 	update_shadows()
+
+func update_atmosphere(delta: float) -> void:
+	visual_clock+=delta
+	var fear:=0.0
+	if game.horrors!=null:
+		fear=clampf(float(game.horrors.fear_weight),0.0,1.0)
+	var fog_target:=BASE_FOG_DENSITY
+	if quality>0:
+		fog_target+=fear*(0.0012 if quality==1 else 0.0022)
+	if environment.fog_enabled:
+		environment.fog_density=lerpf(environment.fog_density,fog_target,1.0-exp(-delta*1.8))
+	if quality>=1:
+		var glow_base:=0.62 if quality>=2 else 0.48
+		environment.glow_intensity=lerpf(environment.glow_intensity,glow_base+fear*0.08,1.0-exp(-delta*2.0))
+	for light in spots:
+		if not is_instance_valid(light):continue
+		var base_energy:=float(light.get_meta("nacre_base_energy",light.light_energy))
+		if quality<=0 or not light.visible:
+			light.light_energy=base_energy
+			continue
+		var phase:=float(light.get_meta("nacre_flicker_phase",0.0))
+		var flutter:=(sin(visual_clock*1.7+phase)*0.015+sin(visual_clock*7.9+phase*1.6)*0.006)*(1.0+fear*1.5)
+		light.light_energy=base_energy*clampf(1.0+flutter,0.92,1.05)
 
 func update_light_budget() -> void:
 	if game == null or game.player == null:return
@@ -150,6 +177,7 @@ func save_settings() -> void:
 func _process(delta: float) -> void:
 	if was_editing and not game.editor.active:game.combat.navigation_ready=false
 	was_editing=game.editor.active
+	update_atmosphere(delta)
 	timer+=delta
 	if timer<0.35:return
 	timer=0
