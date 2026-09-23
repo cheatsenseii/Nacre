@@ -1,5 +1,30 @@
+# Godot cache / generated imports
 .godot/
+*.import
+
+# Local build / export artifacts
+/build/
+/dist/
+/exports/
+*.exe
+*.pck
+*.zip
+*.7z
+*.rar
+
+# Local secrets / environment files
+.env
+.env.*
+!.env.example
+
+# Temporary / debug files
 *.tmp
 *.log
+*.bak
+*~
+
+# IDE / OS clutter
+.vscode/
+.idea/
 .DS_Store
 Thumbs.db
