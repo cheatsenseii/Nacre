@@ -1,0 +1,97 @@
+extends Node
+class HitMark extends Control:
+ var remaining:=0.0
+ var lethal:=false
+ func _draw() -> void:
+  if remaining<=0:return
+  var center:=Vector2(640,360)
+  var color:=Color("e6b16c") if lethal else Color("b3f4df")
+  color.a=minf(1,remaining*6)
+  for side in [Vector2(-1,-1),Vector2(1,-1),Vector2(-1,1),Vector2(1,1)]:
+   draw_line(center+side*9,center+side*17,color,2,true)
+var game: Node
+var layer: CanvasLayer
+var heading: Label
+var objective: Label
+var marker: HitMark
+var grace:=0.0
+var buffer:=0.0
+var last_position:=Vector3.ZERO
+var room:=""
+var title_time:=0.0
+var room_title: Label
+var announced_quest := ""
+
+func _ready() -> void:
+ game=get_parent();last_position=game.player.position
+ layer=CanvasLayer.new();layer.layer=8;add_child(layer)
+ var panel:=Panel.new();panel.position=Vector2(900,24);panel.size=Vector2(350,104);panel.mouse_filter=Control.MOUSE_FILTER_IGNORE
+ var style: StyleBoxFlat=game.front_end.style(Color("102b33"));style.bg_color.a=0.9;style.border_color=Color("377d7e");style.border_width_left=3;panel.add_theme_stylebox_override("panel",style);layer.add_child(panel)
+ heading=game.front_end.label(panel,"OBJECTIF",Vector2(16,10),13,Color("77cfc4"));heading.mouse_filter=Control.MOUSE_FILTER_IGNORE
+ objective=game.front_end.label(panel,"",Vector2(16,34),17,Color("e3eee8"));objective.size=Vector2(318,64);objective.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART;objective.mouse_filter=Control.MOUSE_FILTER_IGNORE
+ marker=HitMark.new();marker.mouse_filter=Control.MOUSE_FILTER_IGNORE;layer.add_child(marker)
+ room_title=game.front_end.label(layer,"",Vector2(330,130),25,Color("cae8df"));room_title.size=Vector2(620,40);room_title.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER;room_title.mouse_filter=Control.MOUSE_FILTER_IGNORE
+
+func move_player(delta: float,direction: Vector3,speed: float) -> void:
+ if game.player.position.distance_to(last_position)>3:grace=0;buffer=0
+ var grounded: bool=game.player.is_on_floor()
+ grace=0.12 if grounded else maxf(0,grace-delta)
+ buffer=maxf(0,buffer-delta)
+ if Input.is_action_just_pressed("jump"):buffer=0.14
+ var acceleration: float=24 if grounded else 9
+ game.player.velocity.x=move_toward(game.player.velocity.x,direction.x*speed,acceleration*delta)
+ game.player.velocity.z=move_toward(game.player.velocity.z,direction.z*speed,acceleration*delta)
+ if not grounded:game.player.velocity.y-=18*delta
+ else:game.player.velocity.y=0
+ if buffer>0 and grace>0 and not game.actions.crouched:
+  game.player.velocity.y=5.8;buffer=0;grace=0
+ game.player.move_and_slide();last_position=game.player.position
+
+func hit(lethal: bool) -> void:
+ marker.remaining=0.35;marker.lethal=lethal;marker.queue_redraw()
+ if game.third_person!=null and game.third_person.has_method("shake"):
+  game.third_person.shake(0.11 if lethal else 0.045,0.18 if lethal else 0.11)
+ if game.has_method("pulse_post_fx"):
+  game.pulse_post_fx(0.65 if lethal else 0.25,0.24 if lethal else 0.14)
+
+func current_goal() -> Array[String]:
+ if game.silence!=null and game.silence.inside():return ["LA CHAMBRE DU SILENCE",game.silence.goal()]
+ if game.horrors!=null and game.horrors.inside():return ["SALLE DES HORREURS",game.horrors.goal()]
+ if game.torture!=null and game.torture.inside():return ["SALLE DE TORTURE",game.torture.goal()]
+ if game.simon.inside():return ["LA MÉMOIRE DU MAL","Reproduis l’ordre des symboles : 4 manches." if not game.simon.won else "Simon a cédé. Rejoins la salle de torture."]
+ if not game.arrived:return ["LA DESCENTE","Le parc a fermé en 1998. Approche de l’entrée du toboggan."]
+ if game.combat.inside():
+  if not game.combat.equipped:return ["LA FOSSE DES RATÉS","Trouve l’épée dans l’alcôve à gauche."]
+  var alive:=0
+  for enemy in game.combat.enemies:
+   if int(enemy.get_meta("hp"))>0:alive+=1
+  return ["LA FOSSE DES RATÉS","Créatures restantes : %d / 3" % alive if alive>0 else "La voie est libre. Rejoins la sortie."]
+ if game.labyrinth.inside():
+  var count: int=game.labyrinth.collected.count(true)
+  return ["LABYRINTHE INFERNAL","Nœuds : %d / 3. Fuis l’ombre : son contact est mortel." % count if count<3 else "Le cœur est ouvert. Fuis l’ombre et rejoins la sortie."]
+ if game.feeding.inside() and game.puzzle.solved:
+  return ["LE REPAS","Le champignon est rassasié. Récupère ses spores et rejoins la porte du fond."]
+ if not game.puzzle.solved:
+  if not game.feeding.equipped:return ["LE REPAS","Ramasse le bâton à gauche de l’arrivée."]
+  return ["LE REPAS","Nourris le champignon : terrasse le monstre." if game.feeding.hp>0 else "Observe le champignon. Il prépare ta récompense."]
+ return ["LA CHAMBRE DU SILENCE","Rejoins les alcôves et ferme les deux vannes bruyantes."]
+
+func _process(delta: float) -> void:
+ layer.visible=not game.paused and not game.editor.active and not game.front_end.active and not game.sliding
+ if not layer.visible:
+  grace=0;buffer=0;marker.remaining=0;return
+ marker.remaining=maxf(0,marker.remaining-delta);marker.queue_redraw()
+ var goal:=current_goal();heading.text=goal[0];objective.text=goal[1]
+ if room!=goal[0]:
+  room=goal[0];room_title.text=room;title_time=3
+  var quest_key := ""
+  match room:
+   "LA DESCENTE":quest_key="mission"
+   "LE REPAS":quest_key="mushroom_quest"
+   "LA CHAMBRE DU SILENCE":quest_key="galleries_quest"
+   "LABYRINTHE INFERNAL":quest_key="labyrinth_quest"
+   "LA FOSSE DES RATÉS":quest_key="combat_quest"
+   "SALLE DE TORTURE":quest_key="torture_quest"
+  if quest_key!="" and quest_key!=announced_quest:
+   announced_quest=quest_key;game.voice.say(quest_key)
+ title_time=maxf(0,title_time-delta);room_title.modulate.a=minf(1,title_time)

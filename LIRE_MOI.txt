@@ -1,0 +1,303 @@
+NACRE / DERNIERE PORTE — ACCUEIL ET VITALITE
+
+NOUVEAU — SALLE DE TORTURE
+Après Simon, le couloir mène à une salle de traitement abandonnée.
+Attrape Bouptilop avec Interagir (E par défaut) à courte portée en le visant.
+Il court puis reprend son souffle ; Ctrl permet de le rattraper plus vite.
+La capture le place dans les sangles du fauteuil. Rejoins la console devant
+le fauteuil et utilise Interagir pour activer trois décharges de spores.
+La première décharge charge l'objet « Spores inconnues x1 » dans la cuve.
+Attends la fin de chaque décharge avant d'activer la suivante. Après la
+troisième, le passage du fond s'ouvre. Capture et décharges sont sauvegardées.
+Si une ancienne sauvegarde ne contient plus les spores, récupère une grappe
+sur la greffe mycélienne à gauche de l'entrée de cette salle.
+F3 ou F1 > Inspection > Salle de torture : tester directement cette épreuve.
+Les apparitions surprises de Bouptilop sont limitées à la salle champignon
+et à Simon (après sa séquence). Le Bouptilop de l'épreuve est un personnage
+obligatoire de la salle de torture, même si les surprises sont désactivées.
+La consigne vocale est synthétique, en anglais, avec sous-titres français.
+
+LANCER
+Extrais entierement le ZIP puis ouvre Derniere_Porte.exe.
+Windows 64 bits Intel/AMD. Godot non requis. Jeu hors ligne.
+
+MENU TOUCHES
+F1 ou Echap : ouvrir le menu et suspendre le jeu.
+Clique une commande puis presse une touche ou un bouton de souris.
+Les doublons sont refuses. Echap annule la saisie. Sauvegarde automatique.
+Le bouton de reinitialisation restaure les commandes par defaut.
+F1, F2 et Echap restent reserves. Les combinaisons et le defilement de molette
+ne sont pas assignables. Changer une commande remplace ses touches alternatives.
+
+COMMANDES PAR DEFAUT
+ZQSD / WASD / fleches : marcher. Souris : regarder.
+Espace : sauter. Maj maintenu : s'accroupir. Ctrl : courir.
+Clic gauche : frapper avec le bâton ou l'épée selon la salle.
+E : interagir (spore, refuge ou depart du toboggan).
+F : lampe. M : musique. V : voix. R : recharger le dernier point de reprise.
+F2 : editeur du decor. F1 / Echap : menu touches et pause.
+
+CHAMBRE 01 : LE REPAS (NOUVEAU)
+La premiere salle est desormais une initiation calme. Les spores toxiques,
+le code couleur, les trois autels et les cloisons laterales ont ete retires.
+Prends le baton eclaire a gauche de l'arrivee avec E / Interagir.
+Un seul petit monstre se reveille. Il est lent et ne retire que 8 points
+sur tes 100 points de vie. Frappe au clic gauche : trois coups suffisent.
+Le champignon ouvre alors les yeux et la bouche, attire le corps et l'avale.
+Il te remercie : « Merci de m'avoir nourri... Tu peux passer. »
+La voix du champignon est synthetique, avec une replique gourmande sous-titree en francais.
+Apres son remerciement, la porte s'ouvre. Le grand champignon prononce alors une phrase troublante et projette une petite grappe de spores vers toi.
+« Quel délice ! Cela faisait si longtemps que je n'avais mangé d'autre que mes enfants… »
+Spores inconnues x 1 est ajoute automatiquement a ton inventaire.
+F1 > Inventaire (faire defiler le menu) : voir l'objet et sa description.
+L'objet réagit aux nœuds du labyrinthe et servira dans la salle de torture.
+Il reste conservé jusqu'à son utilisation dans la cuve.
+Les anciennes sauvegardes ayant deja termine la salle recoivent l'objet
+sans rejouer la scene. Le baton et la reussite sont aussi sauvegardes.
+Un combat interrompu reprend avec le monstre et ta vie retablis.
+Pour revoir cette salle avec une ancienne partie avancee :
+F1 > Nouvelle partie, puis confirme. Cela efface ta progression actuelle.
+
+EXPLORATION ET AMBIANCE
+Salle du champignon : 27 x 22 metres, espace central degage.
+Chambre 02 : 23 x 30 metres, secteurs de maintenance a explorer.
+Des neons vacillent dans les salles suivantes ; option Lumieres stables dans F1.
+
+CHAMBRE 03 : LABYRINTHE INFERNAL
+Entree au fond de la chambre 02, apres avoir nourri le champignon.
+Un labyrinthe organique de 36 x 36 metres : murs qui respirent, veines
+lumineuses et battements de coeur originaux.
+Trouve les trois noeuds vitaux et active-les avec ta touche Interagir (E).
+Ils deviennent verts. Une fois les trois reveilles, la porte au fond s'ouvre.
+Dix membranes montent et descendent : elles ouvrent des raccourcis.
+Un itineraire permanent permet toujours d'atteindre les noeuds et la sortie.
+Les membranes restent ouvertes quand tu te trouves dessous.
+La sortie conduit a une salle de repos ; tu peux revenir explorer.
+La pause et l'editeur suspendent les mouvements du labyrinthe.
+Les noeuds et membranes sont fixes dans l'editeur ; les noeuds actives sont sauvegardes.
+
+CHAMBRE 04 : LA FOSSE DES RATES
+Continue par le fond de la salle de repos apres le labyrinthe.
+Cherche l'epee derriere une tole, dans l'alcove eclairee a gauche.
+E / Interagir : prendre l'epee. Les creatures attaquent aussi sans epee : equipe-toi vite.
+Clic gauche / Pousser-epee : relacher pour attaquer a courte portee.
+Maintenir au moins 0,75 seconde charge un coup a deux degats.
+Clic droit maintenu : parade de face. Une parade dans les 0,3 seconde
+avant l'impact etourdit davantage la creature. Un blocage consomme
+25 points de garde ; elle se regenere quand tu ne pares pas.
+Les attaques dans le dos ne sont pas bloquees.
+Chaque creature a trois points de vie. Recule quand une creature se cambre : elle prepare
+une attaque. Ta vie est affichee en haut a gauche.
+A zero vie : retour a l'entree de cette salle, epee conservee et ennemis retablis.
+Apres les trois eliminations, le passage du fond s'ouvre.
+Le menu F1 permet de reassigner l'attaque. Hors de cette salle, la commande
+reste Pousser. Pause et editeur suspendent le combat.
+Les creatures et la structure du combat ne sont pas editables.
+L'epee et la victoire sont sauvegardees. Un combat inacheve reprend a zero, vie pleine.
+
+SAUVEGARDE ET HORREUR
+Au lancement, choisis CONTINUER sur l'accueil pour reprendre la derniere salle atteinte.
+Le repas termine, le baton, les noeuds du labyrinthe, l'epee et la victoire sont conserves.
+La position exacte, les degats et ennemis d'un combat inacheve sont reinitialises.
+R ou F1 > Recharger le point de reprise : reprendre depuis la sauvegarde.
+F1 > Nouvelle partie : cliquer une seconde fois pour confirmer l'effacement.
+Le menu defile a la molette si ses options ne tiennent pas a l'ecran.
+Une silhouette apparait dans la chambre 02 ; des pas cessent quand tu te retournes.
+Des chocs resonnent dans le labyrinthe et dans la fosse.
+F1 > Evenements d'horreur : activer/desactiver. Sons et evenements sont
+suspendus pendant la pause. Chaque evenement ne se declenche qu'une fois
+par partie et son declenchement est conserve dans la sauvegarde.
+Fichiers : user://progression.cfg et user://frissons.cfg.
+Les anciennes touches personnalisees sont conservees ; si le clic droit
+est deja utilise, la parade recoit une touche libre, visible dans F1.
+
+EDITEUR F2
+Ajoute des cubes, murs et lumieres ; transforme, duplique ou supprime le decor
+editable. Maintiens clic droit pour voler, utilise les touches de deplacement,
+E/Espace pour monter, C pour descendre et Maj pour accelerer.
+Sauvegarder conserve les modifications ; Recharger retrouve le dernier decor.
+Annuler revient sur la derniere modification. Fermer le jeu sans sauvegarder
+perd les modifications. La structure des epreuves, du refuge, du toboggan et
+les details artistiques restent fixes. Les anciennes caisses de matériel ont été retirées pour garder les pièces dégagées.
+
+FICHIERS UTILISATEUR
+Touches : user://touches.cfg ; decor : user://decor_editeur.json.
+Sous Windows : %APPDATA%\Godot\app_userdata\ puis le dossier du projet.
+Ces fichiers restent sur ton PC quand tu remplaces cette version du jeu.
+
+AUDIO ET SOURCES
+Sources contient le projet Godot 4 complet. Sources/audio contient les pistes,
+les scripts disponibles et les notes d'utilisation. Ambiance, respiration,
+pas et gouttes proceduraux ; voix synthetique Flite en anglais, sous-titres francais.
+Licences du moteur : LICENCES.txt.
+Apercus contient des vues de la direction artistique, anterieures au cycle.
+
+VERIFICATION
+Tests Godot sans interface reussis : absence de spores dangereuses, monstre
+inactif avant le baton, prise et sauvegarde du baton, trois coups, animation
+du repas, pause, remerciement, sauvegarde de reussite et passage de la porte.
+Export Windows effectue. Rendu et lancement Windows restent a verifier sur ton PC.
+
+Tests du don : ordre remerciement/ouverture/replique gourmande, ajout automatique unique,
+pause de la replique et de l'animation, inventaire persistant et anciennes sauvegardes.
+
+ECRITURES ET LOGO
+NACRE dispose d'un logo de parc aquatique au-dessus de l'entree du toboggan.
+Les panneaux distinguent REPERAGE, AVERTISSEMENT, INDICE, ACCES et INTERACTION.
+Les textes utilisent des polices embarquees, des fonds contrastes et des
+retours a la ligne. La sortie indique PASSAGE OUVERT apres la reussite.
+L'etiquette du baton disparait une fois ramasse.
+Le logo est visible dans Apercus/NACRE_Logo.png ; sources vectorielles dans
+Sources/branding. Licences des polices dans Sources/fonts/LICENCE.txt.
+Logo inspecte et 24 panneaux controles dans Godot sans interface.
+Le rendu des panneaux en 3D sous Windows reste a verifier sur ton PC.
+
+MONSTRES : MODELE INSPIRE DE TON DESSIN
+Les quatre ennemis utilisent un humanoide fongique en 3D : corps gris,
+bras asymetriques, doigts allonges, yeux rouges emissifs, bouche cousue,
+ventre sombre et champignons rouges/verts. Tete et bras bougent doucement.
+Le monstre de la premiere salle reste petit et facile ; ceux de la fosse
+sont plus grands. Leurs regles de combat restent identiques.
+Modele procedural reutilisable : Sources/spore_creature.gd.
+Tests des quatre modeles, combats, absorption et recompense reussis dans
+Godot sans interface. Rendu Windows a verifier sur ton PC.
+
+ACCUEIL ET BARRE DE VIE
+Le jeu commence sur un ecran d'accueil : Continuer, Nouvelle partie,
+Reglages / Touches, Quitter. Continuer est desactive sans sauvegarde.
+Une nouvelle partie demande confirmation si une progression existe.
+Reglages permet de modifier les options puis de revenir a l'accueil.
+Le personnage et les epreuves attendent ton choix ; souris visible au menu.
+Une barre VITALITE affiche 100 points maximum pendant le jeu : turquoise,
+ambre a 50 ou moins, rouge a 25 ou moins, avec une trainee des degats.
+La vie est commune aux salles et reste diminuee lorsque tu te deplaces.
+Les reprises de checkpoint et nouvelles parties retablissent 100 points.
+La barre est masquee pendant les menus et dans l'editeur.
+Tests Godot : accueil bloque, reglages/retour, sauvegarde/Continuer,
+confirmation, vie commune, couleur critique et trainee des degats.
+Export Windows termine ; rendu visuel Windows a verifier sur ton PC.
+
+POURSUITE ET ATTAQUES DANS LA FOSSE
+Les monstres se mettent en chasse apres quatre secondes dans la salle,
+ou immediatement si tu as l'epee. Ils contournent les obstacles du decor
+et avancent plus vite. Chaque attaque preparee retire 18 points de vie.
+Le signal de preparation dure une demi-seconde. Parade et esquive restent
+possibles ; la pause et l'editeur suspendent les attaques.
+Test en simulation continue : monstre parti de son emplacement, contournant
+la tole pour toucher un joueur sans arme, vie passee de 100 a 82.
+Attaque d'un joueur arme et absence de degats pendant la pause verifies.
+
+AMBIANCE ET OPTIMISATIONS
+F1 > IMAGE : Performance, Equilibre ou Ambiance, avec curseur de luminosite.
+Performance coupe les ombres de la torche et des nouveaux projecteurs.
+Equilibre garde la torche et le projecteur proche ; Ambiance ajoute un second
+projecteur proche avec ombres. Les preferences sont dans user://image.cfg.
+Neuf projecteurs de plafond renforcent les points importants des salles.
+La torche porte plus loin et les zones sombres restent plus lisibles.
+Les lumieres lointaines s'attenuent progressivement.
+Les monstres reutilisent leurs routes tant que la cible ne change pas,
+recalculent s'ils restent bloques, et se separent doucement entre voisins.
+La navigation est reconstruite apres une session d'editeur.
+Geometrie spherique partagee entre monstres ; animations lointaines coupees.
+L'accueil cesse de redessiner ses vagues quand il est masque.
+Test : poursuite autour de la tole avec trois recherches de chemin, degats,
+pause, modes d'ombres et invalidation de navigation verifies dans Godot.
+Les performances et le rendu Windows restent a mesurer sur ton PC.
+
+VUE A LA TROISIEME PERSONNE
+Le personnage est visible : haut rose, pantalon sombre et sac a dos noir.
+La souris oriente le personnage et la camera qui le suit par-dessus l'epaule.
+La camera se rapproche face aux murs et se recule progressivement ensuite.
+Marche, course, saut, accroupissement, poussee et armes ont une pose visible.
+Le baton et l'epee sont tenus en main. La torche part de l'epaule.
+Les distances d'interaction et de frappe sont calculees depuis le personnage.
+Les commandes restent identiques. Le personnage est masque dans l'editeur.
+Tests : camera derriere le joueur, collision avec un mur et retour en arriere,
+ramassage du baton, frappe au baton et a l'epee, arme visible et editeur.
+Export Windows termine ; rendu visuel a verifier sur ton PC.
+
+CONFORT ET OBJECTIFS
+La marche et la course accelerent progressivement pour eviter les mouvements
+secs. Un saut reste accepte une fraction de seconde apres avoir quitte le sol.
+Le panneau OBJECTIF en haut a droite rappelle la prochaine action selon la
+salle. Les coups reussis affichent un repere central ; un coup fatal est dore.
+Le panneau et le repere se masquent pendant la pause, les menus et la descente.
+Tests Godot : saut tamponne, acceleration, objectifs, repere de coup et pause.
+
+APPARENCE DU PERSONNAGE
+Modele 3D stylise inspire de la photo : cheveux courts chatains, barbe,
+haut rose, pantalon sombre et sac a dos noir. Apercu dans Apercus.
+
+DETAILS DU MODELE
+Buste remodele, capuche, sac avec coutures, poches, fermeture, poignee,
+bretelles et boucles. Plis des vetements, doigts et lacets ajoutes.
+
+OMBRE DU LABYRINTHE
+Une silhouette apparait parfois dans un couloir visible, accompagnee de sons
+de pas graves. Elle disparait quand tu approches ou detournes le regard.
+Elle ne blesse pas le personnage. Option Evenements d'horreur dans F1.
+
+POURSUITE PROGRESSIVE
+Dans le labyrinthe, l'ombre se rapproche a chaque noeud vital active.
+Apres le premier noeud elle apparait plus souvent ; apres le deuxieme elle
+corrige sa trajectoire pour rester derriere toi ; apres le troisieme, sa laisse
+est courte, ses yeux rougissent et ses pas deviennent nettement plus proches.
+Elle cesse de te suivre quand tu atteins la chambre de repos.
+
+MASCOTTE AU TOBOGGAN
+Avant de descendre, approche-toi de la mascotte Bouptilop près de la rambarde à droite.
+E lui permet de lancer son avertissement. Après son dialogue, E
+sert à s'engager dans le toboggan. A l'arrivee dans la salle champignon, le
+personnage s'exclame : « WOW ALORS ÇA C'EST DU CHAMPIGNON !!! ».
+
+APPARENCE PERSONNALISABLE
+Accueil > Apparence du personnage, ou F1 > Apparence du personnage.
+Couleurs du haut, pantalon, sac et cheveux. Barbe et sac facultatifs.
+Curseur sous le modele pour voir le dos. Choix sauvegardes automatiquement.
+Retour ou Echap ferme le menu. La progression reste conservee.
+
+MASCOTTE NACRE
+Illustration sur l'accueil et sur une affiche encadree sur le mur droit
+de la salle de depart du toboggan.
+
+CHAMBRE 07 : SALLE DES HORREURS
+Apres les trois decharges de la salle de torture, le couloir s'ouvre sur
+une nouvelle chambre. A l'entree, la lampe torche tombe en panne et l'ecran
+reste completement noir pendant cinq secondes. Ensuite, les lampes claquent
+par eclairs : chaque flash revele les corps de nombreux Boptilop eparpilles
+dans la salle. Le premier eclair fait surgir l'Ombre a moins de deux metres
+devant le joueur ; elle disparait apres une demi-seconde avec un impact sonore,
+un tremblement de camera et une courte animation de peur du personnage.
+Apres la sequence, la torche redevient utilisable tandis que les lampes restent
+instables. F : lampe affiche « La lampe refuse de s'allumer » pendant la panne.
+La salle est accessible directement avec F1 > INSPECTION > Salle des horreurs.
+
+SPRINT 1 — Fiabilité et spores
+La mascotte peut être réécoutée sans lancer la descente.
+Les spores révèlent progressivement leur lien avec les nœuds et l’ombre.
+La résonance est restaurée depuis les nœuds sauvegardés.
+Export Windows reconstruit avec les modèles officiels Godot 4.4.1.
+Le rendu, le son et le lancement sous Windows restent à vérifier manuellement.
+
+SPRINT 2 — RENDU ET GAME FEEL
+La camera TPS balaie son point de depart avant de reculer : elle ne traverse
+plus un pilier lorsque le joueur se teleporte ou colle un mur. Les checkpoints
+reinitialisent aussi l'interpolation physique pour eviter les sauts de rendu.
+Les impacts et les apparitions utilisent un tremblement court et un post-
+traitement discret (vignette, grain, aberration chromatique) dose par la tension.
+Les lumieres dynamiques sont classees par distance et priorite ; le profil
+Performance garde cinq sources, Equilibre sept, Ambiance huit et Ultra dix.
+Les ombres restent reservees aux projecteurs proches. Les membranes du
+labyrinthe et le chapeau du champignon ont des phases independantes, afin que
+les surfaces organiques ne respirent plus toutes ensemble. Les neons cyan et
+les accents prune sont moins satures pour conserver le contraste des yeux,
+des spores et des signaux de danger.
+La construction optionnelle des lumieres est rafraichie sur deux images au
+demarrage, apres l'apparition de l'accueil, pour reduire le pic de calcul.
+
+
+MISE À JOUR : SALLE DES HORREURS
+Voir ../COMMENCER.txt pour le parcours actuel et les corrections de cette version.
+La récompense déjà consommée ne réapparaît plus au chargement.
+La grande réplique incompréhensible a été remplacée par « Quel délice ! Cela faisait
+si longtemps que je n’avais mangé d’autre que mes enfants… ».
