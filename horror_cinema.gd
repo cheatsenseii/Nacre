@@ -60,7 +60,7 @@ func visual_box(parent: Node3D,at: Vector3,size: Vector3,color: Color,glow: floa
 	node.cast_shadow=GeometryInstance3D.SHADOW_CASTING_SETTING_OFF;parent.add_child(node);return node
 
 func decorate_gate(gate: Variant,label: String,color: Color) -> void:
-	if gate==null or not gate is Node3D:return
+	if gate==null or not (gate is Node3D):return
 	var root:=Node3D.new();root.name="Reaction_%s" % label;gate.add_child(root)
 	visual_box(root,Vector3(-1.72,0,0.22),Vector3(0.09,3.45,0.055),Color("202a29"))
 	visual_box(root,Vector3(1.72,0,0.22),Vector3(0.09,3.45,0.055),Color("202a29"))
@@ -68,7 +68,7 @@ func decorate_gate(gate: Variant,label: String,color: Color) -> void:
 	visual_box(root,Vector3(0,1.72,0.26),Vector3(0.42,0.08,0.035),color,0.75)
 	var lamp:=OmniLight3D.new();lamp.position=Vector3(0,1.65,0.42);lamp.light_color=color
 	lamp.light_energy=0.08;lamp.omni_range=2.8;lamp.shadow_enabled=false;root.add_child(lamp)
-	door_records.append({"gate":gate,"root":root,"lamp":lamp,"rest":root.position})
+	door_records.append({"gate":gate,"root":root,"lamp":lamp})
 
 func build_door_reactions() -> void:
 	decorate_gate(game.silence.gate if game.silence!=null else null,"silence",Color("d8a34f"))
@@ -153,14 +153,16 @@ func react_door() -> bool:
 	if record.is_empty():return false
 	active_door=record;door_time=0.75
 	var gate: Node3D=record.gate
-	knock.global_position=gate.global_position+Vector3.UP*0.6;knock.pitch_scale=rng.randf_range(0.48,0.72);knock.play()
+	knock.volume_db=-17;knock.global_position=gate.global_position+Vector3.UP*0.6
+	knock.pitch_scale=rng.randf_range(0.48,0.72);knock.play()
 	return true
 
 func light_stutter() -> void:
 	event_light.global_position=game.player.global_position+Vector3.UP*3.5
 	event_light.light_color=Color("8faeaa") if rng.randf()<0.65 else Color("bd735c")
 	light_time=0.55
-	knock.global_position=sound_position(false);knock.pitch_scale=rng.randf_range(0.42,0.58);knock.volume_db=-22;knock.play()
+	knock.volume_db=-22;knock.global_position=sound_position(false)
+	knock.pitch_scale=rng.randf_range(0.42,0.58);knock.play()
 
 func schedule_next() -> void:
 	var pressure:=clampf(tension,0,1)
