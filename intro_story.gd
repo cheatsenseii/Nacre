@@ -5,11 +5,13 @@ var game: Node
 var active := false
 var armed_new_game := false
 var layer: CanvasLayer
+var objective_layer: CanvasLayer
 var backdrop: ColorRect
 var title: Label
 var body: Label
 var chapter: Label
 var hint: Label
+var objective: Label
 var index := 0
 var reveal := 0.0
 var full_text := ""
@@ -44,7 +46,7 @@ const PANELS := [
 func _ready() -> void:
 	game=get_parent()
 	build_ui()
-	layer.hide()
+	layer.hide();objective_layer.hide()
 	call_deferred("bind_front_end")
 
 func bind_front_end() -> void:
@@ -82,10 +84,19 @@ func build_ui() -> void:
 	hint.horizontal_alignment=HORIZONTAL_ALIGNMENT_RIGHT;hint.add_theme_font_override("font",font());hint.add_theme_font_size_override("font_size",17)
 	hint.add_theme_color_override("font_color",Color("6f8f92"));backdrop.add_child(hint)
 	var bottom_rule:=ColorRect.new();bottom_rule.position=Vector2(96,660);bottom_rule.size=Vector2(1088,2);bottom_rule.color=Color("193d42");backdrop.add_child(bottom_rule)
+	# Small reminder shown only during the opening area after the cinematic text.
+	objective_layer=CanvasLayer.new();objective_layer.layer=8;add_child(objective_layer)
+	var panel:=Panel.new();panel.position=Vector2(835,28);panel.size=Vector2(410,86);panel.mouse_filter=Control.MOUSE_FILTER_IGNORE
+	var style:=StyleBoxFlat.new();style.bg_color=Color(0.015,0.065,0.075,0.91);style.border_color=Color("285961");style.set_border_width_all(1);style.set_corner_radius_all(3)
+	panel.add_theme_stylebox_override("panel",style);objective_layer.add_child(panel)
+	objective=Label.new();objective.position=Vector2(15,10);objective.size=Vector2(380,66)
+	objective.text="OBJECTIF\nRetrouver Nathan • Atteindre la Dernière Porte"
+	objective.autowrap_mode=TextServer.AUTOWRAP_WORD_SMART;objective.add_theme_font_override("font",font());objective.add_theme_font_size_override("font_size",16)
+	objective.add_theme_color_override("font_color",Color("cce6df"));panel.add_child(objective)
 
 func begin() -> void:
 	if active:return
-	active=true;index=0;game.paused=true
+	active=true;index=0;game.paused=true;objective_layer.hide()
 	if game.voice!=null:
 		game.voice.stop_all();game.voice.welcome_played=true
 	layer.show();Input.mouse_mode=Input.MOUSE_MODE_CAPTURED
@@ -110,7 +121,7 @@ func advance() -> void:
 	else:show_panel()
 
 func finish() -> void:
-	active=false;layer.hide();game.paused=false;Input.mouse_mode=Input.MOUSE_MODE_CAPTURED
+	active=false;layer.hide();objective_layer.show();game.paused=false;Input.mouse_mode=Input.MOUSE_MODE_CAPTURED
 	if game.has_method("pulse_post_fx"):game.pulse_post_fx(0.16,0.35)
 	if game.voice!=null:game.voice.say("mission")
 
@@ -124,7 +135,8 @@ func _input(event: InputEvent) -> void:
 func _process(delta: float) -> void:
 	if not active:
 		if armed_new_game and game.front_end!=null and not game.front_end.active:
-			armed_new_game=false;begin()
+			armed_new_game=false;begin();return
+		if objective_layer.visible and game.arrived:objective_layer.hide()
 		return
 	# Keep gameplay frozen even if another UI system briefly toggles the flag.
 	game.paused=true
