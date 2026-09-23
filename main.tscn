@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://main.gd" id="1_main"]
 [ext_resource type="Script" path="res://debug_overlay.gd" id="2_debug"]
@@ -7,6 +7,7 @@
 [ext_resource type="Script" path="res://room_identity.gd" id="5_identity"]
 [ext_resource type="Script" path="res://room_storytelling.gd" id="6_story"]
 [ext_resource type="Script" path="res://horror_cinema.gd" id="7_horror_cinema"]
+[ext_resource type="Script" path="res://intro_story.gd" id="8_intro"]
 
 [node name="DernierePorte" type="Node3D"]
 script = ExtResource("1_main")
@@ -29,3 +30,6 @@ script = ExtResource("6_story")
 
 [node name="HorreurCinematique" type="Node3D" parent="."]
 script = ExtResource("7_horror_cinema")
+
+[node name="PrologueHistoire" type="Node" parent="."]
+script = ExtResource("8_intro")
