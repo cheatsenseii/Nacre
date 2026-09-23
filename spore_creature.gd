@@ -6,7 +6,13 @@ var rig: Node3D
 var head: Node3D
 var left_arm: Node3D
 var right_arm: Node3D
+var eye_left: MeshInstance3D
+var eye_right: MeshInstance3D
+var eye_left_scale := Vector3.ONE
+var eye_right_scale := Vector3.ONE
+var eye_glow: StandardMaterial3D
 var clock := 0.0
+var base_size := 1.0
 var skin: StandardMaterial3D
 var dark: StandardMaterial3D
 var ivory: StandardMaterial3D
@@ -38,7 +44,6 @@ func tube(parent: Node3D,points: Array[Vector3],radii: Array[float],mat: Materia
 	for i in range(rings.size()-1):
 		for j in range(12):
 			var k: int=(j+1)%12
-			# Godot uses clockwise front faces: expose the outside of the limb.
 			for vertex in [rings[i][j],rings[i+1][j],rings[i+1][k],rings[i][j],rings[i+1][k],rings[i][k]]:surface.add_vertex(vertex)
 	for end in [0,rings.size()-1]:
 		for j in range(12):
@@ -56,12 +61,11 @@ func mushroom(parent: Node3D,at: Vector3,size: float,green: bool=false) -> void:
 		for x in [-0.1,0.08]:orb(root,Vector3(x,0.39,-0.035)*size,Vector3.ONE*0.035*size,ivory)
 
 func build(owner_game: Node,size: float=1) -> void:
-	game=owner_game
+	game=owner_game;base_size=size
 	skin=material(Color("625f50"));dark=material(Color("1c1a12"));ivory=material(Color("d5cda3"))
 	preload("res://material_detail.gd").apply(skin,false)
 	red=material(Color("8e161a"));moss=material(Color("65752e"))
-	rig=Node3D.new();add_child(rig);rig.scale=Vector3.ONE*size
-	rig.scale.z*=1.3
+	rig=Node3D.new();add_child(rig);rig.scale=Vector3(size,size,size*1.3)
 	# Uneven legs and a heavy, soft torso.
 	tube(rig,[Vector3(-0.25,1.05,0),Vector3(-0.31,0.63,0),Vector3(-0.32,0.08,-0.04)],[0.2,0.14,0.14],skin)
 	tube(rig,[Vector3(0.27,1.04,0),Vector3(0.43,0.39,-0.01),Vector3(0.4,0.08,-0.04)],[0.19,0.14,0.12],skin)
@@ -101,9 +105,10 @@ func build(owner_game: Node,size: float=1) -> void:
 	for i in range(6):
 		var x: float=(i-2.5)*0.071
 		tube(head,[Vector3(x,-0.01,-0.343),Vector3(x+0.015,-0.18-0.025*sin(i),-0.348)],[0.011,0.01],ivory)
-	var eye_mat:=material(Color("ff3824"),2.4)
-	orb(head,Vector3(-0.18,0.28,-0.287),Vector3(0.12,0.12,0.07),eye_mat)
-	orb(head,Vector3(0.14,0.23,-0.298),Vector3(0.075,0.075,0.06),eye_mat)
+	eye_glow=material(Color("ff3824"),2.4)
+	eye_left=orb(head,Vector3(-0.18,0.28,-0.287),Vector3(0.12,0.12,0.07),eye_glow)
+	eye_right=orb(head,Vector3(0.14,0.23,-0.298),Vector3(0.075,0.075,0.06),eye_glow)
+	eye_left_scale=eye_left.scale;eye_right_scale=eye_right.scale
 	tube(head,[Vector3(-0.08,0.53,-0.2),Vector3(-0.04,0.4,-0.29),Vector3(-0.07,0.24,-0.31)],[0.009,0.009,0.008],dark)
 	mushroom(head,Vector3(-0.24,0.52,0),0.9)
 	tube(rig,[Vector3(-0.13,2.24,-0.2),Vector3(-0.14,2.05,-0.34),Vector3(-0.11,1.92,-0.36)],[0.015,0.012,0.009],dark)
@@ -112,6 +117,27 @@ func _process(delta: float) -> void:
 	if game==null or game.paused or game.editor.active or not is_visible_in_tree():return
 	if global_position.distance_squared_to(game.player.global_position)>2025:return
 	clock+=delta
-	head.rotation.z=sin(clock*1.1)*0.045
-	left_arm.rotation.z=sin(clock*1.7)*0.04
-	right_arm.rotation.z=sin(clock*1.3+1)*0.065
+	var parent_body:=get_parent()
+	var windup:=0.0
+	var rest:=0.0
+	if parent_body!=null:
+		windup=clampf(float(parent_body.get_meta("windup",0.0))/0.5,0.0,1.0)
+		rest=clampf(float(parent_body.get_meta("rest",0.0)),0.0,1.5)
+	# Respiration organique très légère. Le volume se comprime quand la créature prépare son coup.
+	var breath:=sin(clock*2.15)*0.018
+	rig.scale=Vector3(base_size*(1.0+breath*0.45),base_size*(1.0+breath-windup*0.025),base_size*1.3*(1.0-breath*0.35+windup*0.018))
+	rig.rotation.z=sin(clock*0.73)*0.012+windup*0.035
+	# Le regard et les épaules deviennent plus nerveux avant l'attaque.
+	head.rotation.z=sin(clock*1.1)*0.045+sin(clock*5.2)*windup*0.025
+	head.rotation.x=-windup*0.11+sin(clock*0.91)*0.012
+	left_arm.rotation.z=sin(clock*1.7)*0.04+windup*0.18
+	right_arm.rotation.z=sin(clock*1.3+1)*0.065-windup*0.48
+	right_arm.rotation.x=-windup*0.16
+	# Clignements rares et secs, plutôt qu'un regard rouge parfaitement figé.
+	var blink:=pow(maxf(0.0,sin(clock*0.79+1.1)),28.0)
+	if eye_left!=null and is_instance_valid(eye_left):
+		eye_left.scale=Vector3(eye_left_scale.x,maxf(eye_left_scale.y*0.12,eye_left_scale.y*(1.0-blink*0.88)),eye_left_scale.z)
+	if eye_right!=null and is_instance_valid(eye_right):
+		eye_right.scale=Vector3(eye_right_scale.x,maxf(eye_right_scale.y*0.12,eye_right_scale.y*(1.0-blink*0.88)),eye_right_scale.z)
+	if eye_glow!=null:
+		eye_glow.emission_energy_multiplier=2.2+windup*2.1+maxf(0.0,0.25-rest*0.15)
