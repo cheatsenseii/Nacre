@@ -52,14 +52,18 @@ func _ready() -> void:
 	model=preload("res://spore_creature.gd").new()
 	monster.add_child(model);model.build(game,0.5)
 	cap=game.atmosphere.mushroom.get_node("Chapeau")
-	mouth=game.combat.shape(self,center+Vector3(0,1.65,0.81),Vector3(1.05,0.65,0.18),Color(0.02,0.008,0.01),true);mouth.hide()
+	# The elder fungus belongs to the same damp ecosystem as the infected, but reads as ancient and intelligent.
+	if cap is MeshInstance3D:
+		var elder_mat:=StandardMaterial3D.new();elder_mat.albedo_color=Color("4b352d");elder_mat.roughness=0.92
+		preload("res://material_detail.gd").apply(elder_mat,false);cap.material_override=elder_mat
+	mouth=game.combat.shape(self,center+Vector3(0,1.65,0.81),Vector3(1.05,0.65,0.18),Color("090807"),true);mouth.hide()
 	eyes=Node3D.new();add_child(eyes);eyes.hide()
 	for x in [-0.36,0.36]:
-		game.combat.shape(eyes,center+Vector3(x,2.2,0.74),Vector3(0.38,0.27,0.15),Color("414632"),true)
-		var eye: MeshInstance3D=game.combat.shape(eyes,center+Vector3(x,2.2,0.82),Vector3(0.18,0.13,0.06),Color.WHITE,true)
-		eye.material_override=game.atmosphere.luminous(Color(0.65,0.83,0.32),0.65)
-		game.combat.shape(eyes,center+Vector3(x,2.2,0.856),Vector3(0.045,0.1,0.025),Color("121917"),true)
-	tendril=game.combat.shape(self,Vector3.ZERO,Vector3.ONE,Color(0.32,0.46,0.16),true);tendril.hide()
+		game.combat.shape(eyes,center+Vector3(x,2.2,0.74),Vector3(0.38,0.27,0.15),Color("4a4435"),true)
+		var eye: MeshInstance3D=game.combat.shape(eyes,center+Vector3(x,2.2,0.82),Vector3(0.18,0.13,0.06),Color("c9c2a4"),true)
+		eye.material_override=game.atmosphere.luminous(Color("b7aa78"),0.28)
+		game.combat.shape(eyes,center+Vector3(x,2.2,0.856),Vector3(0.045,0.1,0.025),Color("11100d"),true)
+	tendril=game.combat.shape(self,Vector3.ZERO,Vector3.ONE,Color("3d4632"),true);tendril.hide()
 	thanks=AudioStreamPlayer3D.new();thanks.position=center+Vector3(0,2,0)
 	thanks.stream=preload("res://audio/champignon_merci.wav");thanks.pitch_scale=0.82;thanks.unit_size=10;thanks.max_distance=35;add_child(thanks)
 	# La récompense n'est plus un cri incompréhensible : le grand champignon
@@ -68,8 +72,8 @@ func _ready() -> void:
 	cry.position=center+Vector3(0,2,0);cry.unit_size=12;cry.max_distance=40;cry.volume_db=-3;add_child(cry)
 	gift=Node3D.new();add_child(gift);gift.hide()
 	for i in range(7):
-		var seed: MeshInstance3D=game.combat.shape(gift,Vector3(sin(i*2.4)*0.22,cos(i*1.7)*0.18,sin(i)*0.15),Vector3.ONE*0.12,Color(0.65,0.9,0.25),true)
-		seed.material_override=game.atmosphere.luminous(Color(0.65,0.9,0.25),1.5)
+		var seed: MeshInstance3D=game.combat.shape(gift,Vector3(sin(i*2.4)*0.22,cos(i*1.7)*0.18,sin(i)*0.15),Vector3.ONE*0.12,Color("8d9562"),true)
+		seed.material_override=game.atmosphere.luminous(Color("8d9562"),0.65)
 	var layer:=CanvasLayer.new();layer.layer=7;add_child(layer)
 	subtitle=Label.new();subtitle.position=Vector2(80,550);subtitle.size=Vector2(1120,72)
 	subtitle.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER;subtitle.add_theme_font_size_override("font_size",22)
