@@ -66,22 +66,22 @@ func current_goal() -> Array[String]:
  if game.silence!=null and game.silence.inside():return ["LA CHAMBRE DU SILENCE",game.silence.goal()]
  if game.horrors!=null and game.horrors.inside():return ["SALLE DES HORREURS",game.horrors.goal()]
  if game.torture!=null and game.torture.inside():return ["SALLE DE TORTURE",game.torture.goal()]
- if game.simon.inside():return ["LA MÉMOIRE DU MAL","Reproduis l’ordre des symboles : 4 manches." if not game.simon.won else "Simon a cédé. Rejoins la salle de torture."]
- if not game.arrived:return ["LA DESCENTE","Le parc a fermé en 1998. Approche de l’entrée du toboggan."]
+ if game.simon.inside():return ["SIMON", "Reproduis l’ordre des symboles : 4 manches." if not game.simon.won else "Le mécanisme a cédé. Rejoins la salle suivante."]
+ if not game.arrived:return ["LA DESCENTE","Approche de l’entrée du toboggan. Impossible d’en voir le fond."]
  if game.combat.inside():
-  if not game.combat.equipped:return ["LA FOSSE DES RATÉS","Trouve l’épée dans l’alcôve à gauche."]
+  if not game.combat.equipped:return ["BASSIN DE MAINTENANCE","Trouve l’épée dans l’alcôve à gauche."]
   var alive:=0
   for enemy in game.combat.enemies:
    if int(enemy.get_meta("hp"))>0:alive+=1
-  return ["LA FOSSE DES RATÉS","Créatures restantes : %d / 3" % alive if alive>0 else "La voie est libre. Rejoins la sortie."]
+  return ["BASSIN DE MAINTENANCE","Créatures restantes : %d / 3" % alive if alive>0 else "La voie est libre. Rejoins la sortie."]
  if game.labyrinth.inside():
   var count: int=game.labyrinth.collected.count(true)
   return ["LABYRINTHE INFERNAL","Nœuds : %d / 3. Fuis l’ombre : son contact est mortel." % count if count<3 else "Le cœur est ouvert. Fuis l’ombre et rejoins la sortie."]
  if game.feeding.inside() and game.puzzle.solved:
   return ["LE REPAS","Le champignon est rassasié. Récupère ses spores et rejoins la porte du fond."]
  if not game.puzzle.solved:
-  if not game.feeding.equipped:return ["LE REPAS","Ramasse le bâton à gauche de l’arrivée."]
-  return ["LE REPAS","Nourris le champignon : terrasse le monstre." if game.feeding.hp>0 else "Observe le champignon. Il prépare ta récompense."]
+  if not game.feeding.equipped:return ["LE REPAS","Ramasse le bâton près de l’arrivée."]
+  return ["LE REPAS","Nourris le champignon : terrasse la créature." if game.feeding.hp>0 else "Observe le champignon. Quelque chose change."]
  return ["LA CHAMBRE DU SILENCE","Rejoins les alcôves et ferme les deux vannes bruyantes."]
 
 func _process(delta: float) -> void:
@@ -98,7 +98,7 @@ func _process(delta: float) -> void:
    "LE REPAS":quest_key="mushroom_quest"
    "LA CHAMBRE DU SILENCE":quest_key="galleries_quest"
    "LABYRINTHE INFERNAL":quest_key="labyrinth_quest"
-   "LA FOSSE DES RATÉS":quest_key="combat_quest"
+   "BASSIN DE MAINTENANCE":quest_key="combat_quest"
    "SALLE DE TORTURE":quest_key="torture_quest"
   if quest_key!="" and quest_key!=announced_quest:
    announced_quest=quest_key;game.voice.say(quest_key)
