@@ -62,9 +62,9 @@ func mushroom(parent: Node3D,at: Vector3,size: float,green: bool=false) -> void:
 
 func build(owner_game: Node,size: float=1) -> void:
 	game=owner_game;base_size=size
-	skin=material(Color("625f50"));dark=material(Color("1c1a12"));ivory=material(Color("d5cda3"))
+	skin=material(Color("4b5048"));dark=material(Color("151817"));ivory=material(Color("b8b096"))
 	preload("res://material_detail.gd").apply(skin,false)
-	red=material(Color("8e161a"));moss=material(Color("65752e"))
+	red=material(Color("6f2925"));moss=material(Color("48543b"))
 	rig=Node3D.new();add_child(rig);rig.scale=Vector3(size,size,size*1.3)
 	# Uneven legs and a heavy, soft torso.
 	tube(rig,[Vector3(-0.25,1.05,0),Vector3(-0.31,0.63,0),Vector3(-0.32,0.08,-0.04)],[0.2,0.14,0.14],skin)
@@ -81,7 +81,7 @@ func build(owner_game: Node,size: float=1) -> void:
 	mushroom(rig,Vector3(0.2,1.47,0.32),0.45)
 	# Dark inset-looking abdomen, exposed crimson organ and dangling root.
 	orb(rig,Vector3(0.1,1.55,-0.327),Vector3(0.48,0.57,0.09),dark)
-	orb(rig,Vector3(0.11,1.55,-0.38),Vector3(0.27,0.33,0.1),material(Color("511b1b")))
+	orb(rig,Vector3(0.11,1.55,-0.38),Vector3(0.27,0.33,0.1),material(Color("432322")))
 	tube(rig,[Vector3(0.09,1.4,-0.4),Vector3(0.1,1.17,-0.4),Vector3(0.16,0.98,-0.35),Vector3(0.12,0.9,-0.3)],[0.012,0.01,0.009,0.014],red)
 	orb(rig,Vector3(-0.3,1.14,-0.29),Vector3(0.24,0.16,0.045),dark)
 	orb(rig,Vector3(0.4,1.94,-0.22),Vector3(0.16,0.28,0.055),dark)
@@ -105,7 +105,7 @@ func build(owner_game: Node,size: float=1) -> void:
 	for i in range(6):
 		var x: float=(i-2.5)*0.071
 		tube(head,[Vector3(x,-0.01,-0.343),Vector3(x+0.015,-0.18-0.025*sin(i),-0.348)],[0.011,0.01],ivory)
-	eye_glow=material(Color("ff3824"),2.4)
+	eye_glow=material(Color("d6b29a"),1.15)
 	eye_left=orb(head,Vector3(-0.18,0.28,-0.287),Vector3(0.12,0.12,0.07),eye_glow)
 	eye_right=orb(head,Vector3(0.14,0.23,-0.298),Vector3(0.075,0.075,0.06),eye_glow)
 	eye_left_scale=eye_left.scale;eye_right_scale=eye_right.scale
