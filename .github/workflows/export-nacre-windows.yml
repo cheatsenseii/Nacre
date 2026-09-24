@@ -1,0 +1,56 @@
+name: Build NACRE Windows Portable
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/export-nacre-windows.yml'
+  workflow_dispatch:
+
+env:
+  GODOT_VERSION: "4.4.1"
+  EXPORT_NAME: "NACRE"
+
+jobs:
+  export-windows:
+    name: Export NACRE.exe
+    runs-on: ubuntu-24.04
+    container:
+      image: barichello/godot-ci:4.4.1
+    steps:
+      - name: Checkout polished game branch
+        uses: actions/checkout@v4
+        with:
+          ref: refonte-billy-prologue
+          lfs: true
+
+      - name: Setup Godot export templates
+        shell: bash
+        run: |
+          mkdir -p ~/.local/share/godot/export_templates/
+          mkdir -p ~/.config/
+          if [ -d /root/.config/godot ]; then mv /root/.config/godot ~/.config/godot; fi
+          if [ -d "/root/.local/share/godot/export_templates/${GODOT_VERSION}.stable" ]; then
+            mv "/root/.local/share/godot/export_templates/${GODOT_VERSION}.stable" ~/.local/share/godot/export_templates/
+          fi
+
+      - name: Import and validate project
+        shell: bash
+        run: godot --headless --editor --path . --quit-after 2
+
+      - name: Export portable Windows game
+        shell: bash
+        run: |
+          mkdir -p build/windows
+          godot --headless --path . --export-release "Windows Desktop" "$(pwd)/build/windows/${EXPORT_NAME}.exe"
+          test -s "build/windows/${EXPORT_NAME}.exe"
+          printf 'NACRE - VERSION WINDOWS PORTABLE\n\nExtrais tout le ZIP puis double-clique sur NACRE.exe.\nAucune installation de Godot n est necessaire.\n' > build/windows/LIS_MOI.txt
+
+      - name: Upload Windows build
+        uses: actions/upload-artifact@v4
+        with:
+          name: NACRE-Windows-Portable
+          path: build/windows/
+          if-no-files-found: error
+          retention-days: 14
