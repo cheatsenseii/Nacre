@@ -14,26 +14,42 @@ var speech_gap:=0.0
 var current_source: Node
 var spatial_lines: Dictionary={}
 var clips := {}
+var text_only_time:=0.0
 var captions := {
 	"depart": "Bon… c'est parti.",
 	"bienvenue": "Bienvenue à NACRE…",
 	"prologue": "En 1998, le parc a fermé après un accident. Les bassins n'ont jamais été vidés.",
-	"arrivee": "WOW ALORS ÇA C'EST DU CHAMPIGNON !!!",
+	"arrivee": "Non… ce truc respire vraiment.",
 	"erreur": "Non… ce n'est pas ça.",
-	"victoire": "Oh yes !",
-	"mission": "Mission : atteindre la dernière porte. Commence par l'entrée du toboggan.",
-	"mushroom_quest": "Quête : prends le bâton, bats le monstre et nourris le champignon.",
-	"galleries_quest": "Ferme les deux vannes bruyantes. Puis reste immobile trois secondes dans le cercle pour ouvrir le labyrinthe.",
-	"labyrinth_quest": "Réveille les trois nœuds vitaux. Fuis l'ombre : si elle te touche, tu meurs.",
-	"combat_quest": "Quête : trouve l'épée, élimine les créatures et rejoins la porte du fond.",
-	"torture_quest": "Attrape Bouptilop. Puis charge les spores du grand champignon dans la cuve et active trois décharges.",
-	"horror_quest": "Non… Qu'est-ce qui leur est arrivé ?"
+	"victoire": "Ça a marché.",
+	"mission": "Le toboggan descend sous le parc. Évidemment.",
+	"mushroom_quest": "Un bâton, une créature… et ce champignon qui attend.",
+	"galleries_quest": "Les vannes alimentent encore quelque chose.",
+	"labyrinth_quest": "Ces nœuds réagissent à moi. Et cette ombre aussi.",
+	"combat_quest": "Un bassin vide, des bestioles… et une épée. Parfait.",
+	"torture_quest": "Il faut remettre le courant. J'ai pas envie de savoir pourquoi.",
+	"horror_quest": "Non… qu'est-ce qui s'est passé ici ?"
+}
+# These lines used to be literal quest instructions recorded as voice clips. Billy now
+# keeps them as sparse internal reactions, which avoids the GPS effect without requiring
+# regenerated audio assets. Existing NPC/spatial voices remain fully voiced.
+var text_only := {
+	"arrivee": true,
+	"victoire": true,
+	"mission": true,
+	"mushroom_quest": true,
+	"galleries_quest": true,
+	"labyrinth_quest": true,
+	"combat_quest": true,
+	"torture_quest": true,
+	"horror_quest": true
 }
 
 func _ready() -> void:
 	game = get_parent()
 	for key in captions:
-		clips[key] = load("res://audio/voix_"+key+".wav")
+		if not text_only.has(key):
+			clips[key] = load("res://audio/voix_"+key+".wav")
 	speaker = AudioStreamPlayer.new()
 	speaker.volume_db = -3
 	add_child(speaker)
@@ -67,8 +83,11 @@ func finish_line(source: Node) -> void:
 
 func cancel_line(key: String) -> void:
 	pending.erase(key)
-	if key==current and current_source!=null:
-		current_source.stop();finish_line(current_source)
+	if key==current:
+		if current_source!=null:
+			current_source.stop();finish_line(current_source)
+		else:
+			current="";text_only_time=0;subtitle.hide();speech_gap=SPEECH_GAP
 	used.erase(key)
 
 func other_voice_playing() -> bool:
@@ -80,10 +99,10 @@ func other_voice_playing() -> bool:
 	return false
 
 func busy() -> bool:
-	return not pending.is_empty() or current_source!=null or speaker.playing or speech_gap>0 or other_voice_playing()
+	return not pending.is_empty() or current!="" or current_source!=null or speaker.playing or speech_gap>0 or other_voice_playing()
 
 func stop_all() -> void:
-	pending.clear();speaker.stop();current="";current_source=null;speech_gap=0;subtitle.hide()
+	pending.clear();speaker.stop();current="";current_source=null;speech_gap=0;text_only_time=0;subtitle.hide()
 	for line in spatial_lines.values():
 		line.source.stop();line.label.text="";line.label.hide()
 
@@ -99,10 +118,7 @@ func say(key: String) -> void:
 	elif key!="victoire":
 		if used.has(key): return
 	if key == "victoire":
-		# Celebrate at the next free turn, without cutting a rule or NPC mid-sentence.
 		pending.push_front(key)
-	# Keep the short welcome/prologue stack and the first room objective together;
-	# otherwise the mission can be silently discarded on a fresh launch.
 	elif pending.size() < 32:
 		pending.append(key)
 		used[key]=true
@@ -131,18 +147,25 @@ func _process(delta: float) -> void:
 	failure_cooldown = maxf(0,failure_cooldown-delta)
 	victory_cooldown=maxf(0,victory_cooldown-delta)
 	speech_gap=maxf(0,speech_gap-delta)
-	# A paused 3D source can report playing=false. Only finished (or an explicit
-	# cancellation) releases its turn, so resuming never skips the end of a line.
-	if enabled and current_source==null and speech_gap<=0 and not other_voice_playing() and not pending.is_empty():
+	if text_only_time>0:
+		text_only_time=maxf(0,text_only_time-delta)
+		if text_only_time<=0:
+			current="";subtitle.hide();speech_gap=SPEECH_GAP
+	if enabled and current_source==null and current=="" and speech_gap<=0 and not other_voice_playing() and not pending.is_empty():
 		current = pending.pop_front()
-		if spatial_lines.has(current):current_source=spatial_lines[current].source
+		if text_only.has(current):
+			subtitle.text="« " + captions[current] + " »"
+			subtitle.show()
+			text_only_time=clampf(1.9+float(captions[current].length())*0.035,2.4,4.4)
+		elif spatial_lines.has(current):
+			current_source=spatial_lines[current].source
+			current_source.stream_paused=false;current_source.play()
 		else:
 			current_source=speaker;speaker.stream=clips[current]
-		current_source.stream_paused=false;current_source.play()
+			current_source.stream_paused=false;current_source.play()
 	if current_source!=null:
 		if spatial_lines.has(current):
 			var label: Label=spatial_lines[current].label
 			label.text=captions[current];label.visible=enabled
 		else:subtitle.text="« " + captions[current] + " »"
-	subtitle.visible = enabled and current_source==speaker and speaker.playing
-	# AudioMix ducks music for all audible voices, including nearby NPCs.
+	subtitle.visible = enabled and ((current_source==speaker and speaker.playing) or text_only_time>0)
