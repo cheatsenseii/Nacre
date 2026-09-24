@@ -1,6 +1,7 @@
 extends Node
 var game: Node
 var active := true
+var prologue_mode := false
 var layer: CanvasLayer
 var continue_button: Button
 var new_button: Button
@@ -85,8 +86,6 @@ func _ready() -> void:
 	picture.expand_mode=TextureRect.EXPAND_IGNORE_SIZE;picture.stretch_mode=TextureRect.STRETCH_SCALE
 	picture.mouse_filter=Control.MOUSE_FILTER_IGNORE;reference_frame.add_child(picture)
 	picture.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	# Real controls replace the painted buttons at the same image coordinates.
-	# Keeping the whole reference in one aspect-preserved frame prevents drift.
 	menu_actions=VBoxContainer.new();menu_actions.position=Vector2(64,366)
 	menu_actions.size.x=363;menu_actions.add_theme_constant_override("separation",7)
 	reference_frame.add_child(menu_actions)
@@ -117,23 +116,52 @@ func _ready() -> void:
 func refresh() -> void:
 	continue_button.disabled=game.checkpoints.latest.is_empty()
 	continue_button.visible=true
-	note.text="Commence ton exploration du parc abandonné." if continue_button.disabled else "Reprends ton exploration au dernier point sauvegardé."
+	note.text="Commence avec Billy, avant son retour à NACRE." if continue_button.disabled else "Reprends ton exploration au dernier point sauvegardé."
 	if continue_button.disabled:new_button.grab_focus()
 	else:continue_button.grab_focus()
 
 func launch() -> void:
+	prologue_mode=false
 	confirmation.hide();credits.hide();confirming=false;game.camera.make_current()
 	game.hud.get_parent().show()
 	active=false;game.paused=false;layer.hide();Input.mouse_mode=Input.MOUSE_MODE_CAPTURED
 	game.checkpoints.countdown=0;displayed=game.health
+
+func begin_billy_prologue() -> void:
+	confirmation.hide();credits.hide();confirming=false
+	var home:=game.get_node_or_null("MaisonBilly")
+	if home==null or not home.has_method("begin"):
+		# Fallback keeps a broken optional prologue from blocking the actual game.
+		launch()
+		return
+	prologue_mode=true
+	active=true
+	game.paused=true
+	game.hud.get_parent().hide()
+	health_layer.hide()
+	layer.hide()
+	Input.mouse_mode=Input.MOUSE_MODE_CAPTURED
+	home.begin()
+
+func finish_billy_prologue() -> void:
+	prologue_mode=false
+	active=false
+	game.paused=false
+	game.camera.make_current()
+	game.hud.get_parent().show()
+	layer.hide()
+	game.checkpoints.countdown=0
+	displayed=game.health
+	Input.mouse_mode=Input.MOUSE_MODE_CAPTURED
+	# The park greets Billy only after the playable home sequence, not from a text dump.
 	if not game.voice.welcome_played:
 		game.voice.welcome_played=true
 		game.voice.say("bienvenue")
-		game.voice.say("prologue")
 
 func continue_game() -> void:
 	if game.checkpoints.latest.is_empty():return
-	game.checkpoints.apply_save(game.checkpoints.latest);launch()
+	game.checkpoints.apply_save(game.checkpoints.latest)
+	launch()
 
 func new_game() -> void:
 	if not game.checkpoints.latest.is_empty() and not confirming:
@@ -145,7 +173,7 @@ func new_game() -> void:
 	var inspection=game.get_node_or_null("Inspection")
 	if inspection!=null:inspection.active=false
 	game.checkpoints.apply_save({"version":1,"stage":0,"nodes":[false,false,false],"sword":false,"stick":false,"spores":false,"events":{}})
-	launch()
+	begin_billy_prologue()
 
 func build_health() -> void:
 	health_layer=CanvasLayer.new();health_layer.layer=9;add_child(health_layer)
@@ -159,14 +187,14 @@ func build_health() -> void:
 	health_bar.add_theme_stylebox_override("background",StyleBoxEmpty.new());bar_style=style(Color("61d6bc"));health_bar.add_theme_stylebox_override("fill",bar_style);panel.add_child(health_bar)
 
 func _process(delta: float) -> void:
-	layer.visible=active and not game.controls.is_open
-	health_layer.visible=not active and not game.editor.active and not game.paused
+	layer.visible=active and not prologue_mode and not game.controls.is_open
+	health_layer.visible=not active and not prologue_mode and not game.editor.active and not game.paused
 	var hp: int=clampi(game.health,0,100)
 	health_bar.value=hp
 	displayed=move_toward(displayed,hp,delta*28);trail.value=maxf(hp,displayed)
 	bar_style.bg_color=Color("e0695b") if hp<=25 else (Color("e8b467") if hp<=50 else Color("61d6bc"))
 	health_text.text=("VITALITÉ CRITIQUE" if hp<=25 else "VITALITÉ")+"         %d / 100" % hp
-	if active:
+	if active and not prologue_mode:
 		menu_clock+=delta
 		menu_camera.position=Vector3(3.8+sin(menu_clock*0.08)*0.10,2.5,4.0)
 		menu_camera.look_at(Vector3(-1.9,3.1,-4))
