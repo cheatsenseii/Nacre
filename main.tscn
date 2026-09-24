@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://main.gd" id="1_main"]
 [ext_resource type="Script" path="res://debug_overlay.gd" id="2_debug"]
@@ -8,7 +8,6 @@
 [ext_resource type="Script" path="res://room_storytelling.gd" id="6_story"]
 [ext_resource type="Script" path="res://horror_cinema.gd" id="7_horror_cinema"]
 [ext_resource type="Script" path="res://intro_story.gd" id="8_intro"]
-[ext_resource type="Script" path="res://investigation_room.gd" id="9_investigation"]
 [ext_resource type="Script" path="res://billy_prologue.gd" id="10_billy"]
 
 [node name="DernierePorte" type="Node3D"]
@@ -38,6 +37,3 @@ script = ExtResource("8_intro")
 
 [node name="BillyPrologue" type="Node" parent="."]
 script = ExtResource("10_billy")
-
-[node name="SalleEnquete" type="Node3D" parent="."]
-script = ExtResource("9_investigation")
