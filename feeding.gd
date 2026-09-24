@@ -30,6 +30,9 @@ var gift: Node3D
 var clock := 0.0
 var subtitle: Label
 var subtitle_time := 0.0
+var elder_clock := 0.0
+var elder_base_scale := Vector3.ONE
+var elder_light: OmniLight3D
 
 func make_stick(parent: Node3D) -> Node3D:
 	var node:=Node3D.new();parent.add_child(node)
@@ -56,6 +59,9 @@ func _ready() -> void:
 	if cap is MeshInstance3D:
 		var elder_mat:=StandardMaterial3D.new();elder_mat.albedo_color=Color("4b352d");elder_mat.roughness=0.92
 		preload("res://material_detail.gd").apply(elder_mat,false);cap.material_override=elder_mat
+	elder_base_scale=cap.scale
+	elder_light=OmniLight3D.new();elder_light.position=center+Vector3(0,2.3,0.5);elder_light.light_color=Color("756b4b");elder_light.light_energy=0.18;elder_light.omni_range=4.5;add_child(elder_light)
+	elder_light.add_to_group("nacre_dynamic_light");elder_light.set_meta("nacre_light_priority",1)
 	mouth=game.combat.shape(self,center+Vector3(0,1.65,0.81),Vector3(1.05,0.65,0.18),Color("090807"),true);mouth.hide()
 	eyes=Node3D.new();add_child(eyes);eyes.hide()
 	for x in [-0.36,0.36]:
@@ -134,12 +140,17 @@ func update(delta: float) -> void:
 	cry.stream_paused=game.paused or game.editor.active
 	subtitle.visible=not game.editor.active and not game.paused and active
 	if game.paused or game.editor.active:return
-	clock+=delta;cooldown=maxf(0,cooldown-delta);immunity=maxf(0,immunity-delta)
+	clock+=delta;elder_clock+=delta;cooldown=maxf(0,cooldown-delta);immunity=maxf(0,immunity-delta)
+	# Slow respiration keeps the elder fungus alive even before it reveals its face.
+	var breath:=1.0+sin(elder_clock*0.72)*0.018
+	cap.scale=elder_base_scale*Vector3(1.0+sin(elder_clock*0.61)*0.009,breath,1.0+sin(elder_clock*0.61)*0.009)
+	if elder_light!=null:elder_light.light_energy=0.16+0.055*(sin(elder_clock*0.72)*0.5+0.5)
 	subtitle_time=maxf(0,subtitle_time-delta)
 	if subtitle_time==0 and game.voice.current not in ["mushroom_thanks","mushroom_delice"]:subtitle.text=""
 	stick.rotation.z=-0.2+sin(cooldown/0.45*PI)*1.5
 	if feeding_time>=0 and not game.puzzle.solved:
 		feeding_time+=delta;mouth.show();eyes.show();tendril.show()
+		if elder_light!=null:elder_light.light_energy=0.28+absf(sin(feeding_time*2.4))*0.12
 		cap.rotation.z=-0.1+sin(feeding_time*3)*0.045
 		var target:=mouth.position
 		monster.position=corpse_start.lerp(target,smoothstep(0,4,feeding_time))
@@ -170,6 +181,7 @@ func update(delta: float) -> void:
 		gift.rotation.y=gift_time*4
 	if said_thanks:
 		var speaking: bool=(thanks.playing or cry.playing) and not game.paused
+		if elder_light!=null and speaking:elder_light.light_energy=0.24+absf(sin(clock*6))*0.1
 		mouth.visible=speaking
 		if speaking:
 			mouth.scale.y=0.5+absf(sin(clock*12))*0.55
