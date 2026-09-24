@@ -45,6 +45,12 @@ func inspect_boredom_object(id: String) -> String:
 			line = "Elles ont connu des endroits plus intéressants que ce salon."
 		"phone":
 			line = "Rien. Encore une soirée passionnante."
+		"tv":
+			line = "Même écran, mêmes trucs. Ça tourne en rond."
+		"computer":
+			line = "J’ai déjà fait le tour de tout ce que je voulais voir."
+		"fridge":
+			line = "Vide. Magnifique programme pour la soirée."
 		_:
 			line = "J’ai vraiment besoin de sortir d’ici."
 	current_thought = line
