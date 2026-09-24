@@ -1,6 +1,6 @@
 extends Node
-## First playable narrative layer for the Billy rewrite.
-## This intentionally stays self-contained so the existing NACRE gameplay remains untouched.
+## Playable narrative spine for Billy's return to NACRE.
+## It establishes motivation without explaining the park's mysteries for the player.
 
 signal prologue_finished
 
@@ -17,11 +17,10 @@ enum Step {
 
 var step: Step = Step.BORED
 var inspected_boredom_objects := 0
-var required_boredom_objects := 3
+var required_boredom_objects := 2
 var has_seen_photo := false
 var has_keys := false
 var has_gear := false
-
 var current_objective := "Faire un tour dans la maison"
 var current_thought := ""
 
@@ -51,16 +50,19 @@ func inspect_boredom_object(id: String) -> String:
 	current_thought = line
 	if inspected_boredom_objects >= required_boredom_objects:
 		step = Step.FIND_PHOTO
-		current_objective = "Regarder les souvenirs dans le salon"
+		current_objective = "Regarder les souvenirs d’urbex"
 	return line
 
 func inspect_nacre_photo() -> String:
-	if step != Step.FIND_PHOTO and step != Step.BORED:
+	if step == Step.BORED:
+		current_thought = "Toutes ces vieilles sorties… Ça me manque plus que je veux l’admettre."
+		return current_thought
+	if step != Step.FIND_PHOTO:
 		return ""
 	has_seen_photo = true
 	step = Step.FIND_KEYS
 	current_objective = "Retrouver les clés de voiture"
-	current_thought = "NACRE… J’avais complètement oublié cet endroit. J’étais tombé dessus en me paumant dans le coin. Au milieu de rien… On s’amusait tellement avant. Toutes ces aventures me manquent. …Et si j’arrêtais de tourner en rond ?"
+	current_thought = "NACRE… J’étais tombé dessus en me paumant dans le coin. On partait sans savoir où on finirait. Pourquoi j’ai arrêté ?"
 	return current_thought
 
 func collect_keys() -> String:
@@ -78,7 +80,7 @@ func collect_urbex_gear() -> String:
 	has_gear = true
 	step = Step.LEAVE_HOME
 	current_objective = "Quitter la maison"
-	current_thought = "Lampe, sac… ça fera l’affaire."
+	current_thought = "Lampe, sac, appareil… ça fera l’affaire."
 	return current_thought
 
 func leave_home() -> String:
