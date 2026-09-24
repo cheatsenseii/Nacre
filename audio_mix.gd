@@ -214,7 +214,6 @@ func play_at(key: String, at: Vector3, gain: float = 0.0) -> AudioStreamPlayer3D
 	var player: AudioStreamPlayer3D = null
 	for free in pool:
 		if not free.playing: player=free; break
-	# Cosmetic ambience must never interrupt combat feedback. Bounded polyphony.
 	if player == null and key not in ["drip","pipe"]:
 		for candidate in pool:
 			if candidate.get_meta("cue","") in ["drip","pipe"]: player=candidate; break
@@ -245,25 +244,54 @@ func reset_transients() -> void:
 	cooldowns.clear(); ambient_wait=8.0; music_duck=0; ambience_duck=0
 	last_position=game.player.position
 
+func current_zone() -> String:
+	if game.horrors!=null and game.horrors.inside():return "horrors"
+	if game.torture!=null and game.torture.inside():return "torture"
+	if game.simon!=null and game.simon.inside():return "simon"
+	if game.combat!=null and game.combat.inside():return "combat"
+	if game.labyrinth!=null and game.labyrinth.inside():return "labyrinth"
+	if game.silence!=null and game.silence.inside():return "silence"
+	if game.feeding!=null and game.feeding.inside():return "feeding"
+	if game.sliding:return "slide"
+	return "park"
+
+func zone_weights(zone: String) -> Vector3:
+	match zone:
+		"feeding": return Vector3(0.42,0.76,0.08)
+		"silence": return Vector3(0.10,0.04,0.92)
+		"labyrinth": return Vector3(0.05,0.92,0.10)
+		"combat": return Vector3(0.08,0.16,0.86)
+		"simon": return Vector3(0.18,0.08,0.55)
+		"torture": return Vector3(0.04,0.12,1.0)
+		"horrors": return Vector3(0.05,0.68,0.16)
+		"slide": return Vector3(0.42,0.05,0.72)
+		_: return Vector3(0.88,0.06,0.14)
+
 func update_mix(delta: float) -> void:
 	var frozen: bool = game.paused or game.editor.active or game.front_end.active or game.finished
 	var speaking := voice_active() and not frozen
 	var intense: bool = game.horrors.intense()
 	var simon_busy: bool = game.simon.inside() and game.simon.phase in ["show","input"]
 	var silence_ready: bool=game.silence!=null and game.silence.quiet_phase()
-	var music_target := -24.0 if intense else (-11.0 if speaking else (-7.0 if simon_busy else (-4.0 if game.front_end.active else 0.0)))
+	var zone:=current_zone()
+	var zone_music: float=0.0
+	match zone:
+		"feeding": zone_music=-5.0
+		"silence": zone_music=-12.0
+		"labyrinth": zone_music=-10.0
+		"combat": zone_music=-5.0
+		"simon": zone_music=-7.0
+		"torture": zone_music=-6.0
+		"horrors": zone_music=-18.0
+		"slide": zone_music=-8.0
+	var music_target := -24.0 if intense else minf(zone_music,-11.0 if speaking else (-7.0 if simon_busy else (-4.0 if game.front_end.active else 0.0)))
 	if silence_ready: music_target=minf(music_target,-28.0)
 	if game.death!=null and game.death.active: music_target=minf(music_target,-24.0)
 	music_duck = move_toward(music_duck,music_target,delta*(45 if music_target<music_duck else 5))
 	game.atmosphere.music.volume_db=-7.0+music_duck
 	var ambient_target := -15.0 if intense else (-8.0 if speaking or simon_busy else 0.0)
 	ambience_duck=move_toward(ambience_duck,ambient_target,delta*(35 if ambient_target<ambience_duck else 5))
-	var weights := Vector3(1,0,0)
-	if game.labyrinth.inside(): weights=Vector3(0.12,1,0)
-	elif game.torture.inside() or game.combat.inside(): weights=Vector3(0.2,0,0.8)
-	elif game.feeding.inside(): weights=Vector3(0.65,0.3,0)
-	elif game.horrors.inside(): weights=Vector3(0.25,0.5,0.4)
-	if game.sliding: weights=Vector3(0.6,0,0.4)
+	var weights:=zone_weights(zone)
 	if silence_ready: weights=Vector3.ZERO
 	for i in range(ambience.size()):
 		var target := -60.0 if frozen or intense or weights[i]<0.05 else -16.0+linear_to_db(weights[i])+ambience_duck
@@ -271,14 +299,22 @@ func update_mix(delta: float) -> void:
 		ambience[i].stream_paused=frozen
 		if target > -60 and not ambience[i].playing: ambience[i].play()
 		elif target <= -60 and ambience[i].volume_db <= -59.9: ambience[i].stop()
-	var organic: bool=game.labyrinth.inside()
-	reverb.wet=move_toward(reverb.wet,0.07 if organic else 0.13,delta*0.08)
-	reverb.room_size=move_toward(reverb.room_size,0.42 if organic else 0.68,delta*0.2)
+	var wet_target:=0.13
+	var room_target:=0.68
+	match zone:
+		"feeding": wet_target=0.16;room_target=0.72
+		"silence": wet_target=0.20;room_target=0.82
+		"labyrinth": wet_target=0.08;room_target=0.44
+		"combat": wet_target=0.18;room_target=0.78
+		"simon": wet_target=0.12;room_target=0.64
+		"torture": wet_target=0.19;room_target=0.82
+		"horrors": wet_target=0.24;room_target=0.90
+		"slide": wet_target=0.22;room_target=0.88
+	reverb.wet=move_toward(reverb.wet,wet_target,delta*0.08)
+	reverb.room_size=move_toward(reverb.room_size,room_target,delta*0.2)
 
 func _process(delta: float) -> void:
 	var frozen: bool=game.paused or game.editor.active or game.front_end.active or game.finished
-	# Legacy sources control their room state; only override them during a global
-	# pause, then return their previous state. Music and UI remain menu-local.
 	for player in routed:
 		if not is_instance_valid(player) or player==game.atmosphere.music: continue
 		if player.has_meta("nacre_death_sound") and game.death.active:
@@ -299,6 +335,13 @@ func _process(delta: float) -> void:
 	if occlusion_wait<=0: update_occlusion(); occlusion_wait=0.18
 	ambient_wait-=delta
 	if ambient_wait<=0 and not game.sliding and not game.horrors.intense() and not game.simon.inside() and not game.silence.quiet_phase() and not voice_active():
-		ambient_wait=rng.randf_range(7.0,14.0)
-		var offset:=Vector3(rng.randf_range(-4,4),rng.randf_range(0.4,2.4),rng.randf_range(-6,4))
-		play_at("drip",game.player.global_position+offset)
+		var zone:=current_zone()
+		var mechanical:=zone in ["silence","combat","torture"]
+		if mechanical and rng.randf()<0.34:
+			var pipe_offset:=Vector3(rng.randf_range(-7,7),rng.randf_range(0.8,3.2),rng.randf_range(-8,5))
+			play_at("pipe",game.player.global_position+pipe_offset,-2)
+			ambient_wait=rng.randf_range(10.0,18.0)
+		else:
+			var offset:=Vector3(rng.randf_range(-4,4),rng.randf_range(0.4,2.4),rng.randf_range(-6,4))
+			play_at("drip",game.player.global_position+offset,-1 if zone in ["feeding","horrors"] else 0)
+			ambient_wait=rng.randf_range(5.5,10.0) if zone in ["feeding","horrors"] else rng.randf_range(8.0,15.0)
