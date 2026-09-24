@@ -41,6 +41,22 @@ jobs:
         run: |
           godot --headless --editor --path "$PROJECT_PATH" --quit-after 2
 
+      - name: Runtime smoke test
+        shell: bash
+        run: |
+          set +e
+          timeout 8s godot --headless --path "$PROJECT_PATH" --verbose 2>&1 | tee runtime-smoke.log
+          code=${PIPESTATUS[0]}
+          set -e
+          if [ "$code" -ne 0 ] && [ "$code" -ne 124 ]; then
+            echo "Godot exited unexpectedly with code $code"
+            exit "$code"
+          fi
+          if grep -E "SCRIPT ERROR|Parse Error|Parser Error|Invalid call|Invalid access|Invalid get index" runtime-smoke.log; then
+            echo "Runtime script error detected"
+            exit 1
+          fi
+
       - name: Export Windows x64
         shell: bash
         run: |
@@ -58,7 +74,18 @@ jobs:
           2. Double-cliquer sur NACRE.exe.
           3. Aucun editeur Godot n'est necessaire pour jouer.
 
-          Si Windows SmartScreen affiche un avertissement, c'est parce que l'executable n'est pas signe numeriquement.
+          Si le jeu se ferme immediatement, lance DIAGNOSTIC_NACRE.bat et envoie le fichier nacre_log.txt.
+          EOF
+          cat > build/windows/DIAGNOSTIC_NACRE.bat <<'EOF'
+          @echo off
+          cd /d "%~dp0"
+          echo Lancement de NACRE en mode diagnostic...
+          NACRE.exe --verbose > nacre_log.txt 2>&1
+          echo.
+          echo Le journal a ete cree ici :
+          echo %~dp0nacre_log.txt
+          echo.
+          pause
           EOF
 
       - name: Upload Windows build
