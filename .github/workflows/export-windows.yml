@@ -47,15 +47,30 @@ jobs:
           set +e
           timeout 8s godot --headless --path "$PROJECT_PATH" --verbose 2>&1 | tee runtime-smoke.log
           code=${PIPESTATUS[0]}
+          echo "$code" > runtime-smoke-exit-code.txt
           set -e
+          echo "===== FULL GODOT RUNTIME LOG ====="
+          cat runtime-smoke.log || true
+          echo "===== END GODOT RUNTIME LOG ====="
           if [ "$code" -ne 0 ] && [ "$code" -ne 124 ]; then
             echo "Godot exited unexpectedly with code $code"
             exit "$code"
           fi
-          if grep -E "SCRIPT ERROR|Parse Error|Parser Error|Invalid call|Invalid access|Invalid get index" runtime-smoke.log; then
+          if grep -E "SCRIPT ERROR|Parse Error|Parser Error|Invalid call|Invalid access|Invalid get index|ERROR:" runtime-smoke.log; then
             echo "Runtime script error detected"
             exit 1
           fi
+
+      - name: Upload runtime smoke log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: NACRE-Runtime-Smoke-Log
+          path: |
+            runtime-smoke.log
+            runtime-smoke-exit-code.txt
+          if-no-files-found: warn
+          retention-days: 7
 
       - name: Export Windows x64
         shell: bash
