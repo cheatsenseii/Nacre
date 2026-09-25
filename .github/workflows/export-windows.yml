@@ -63,6 +63,14 @@ jobs:
             done
           done
 
+          # The compatibility audio beds are WAVs. WAV loop control uses loop_mode, not loop.
+          sed -i 's/var water: AudioStream =/var water: AudioStreamWAV =/' top_npc.gd
+          sed -i 's/water\.loop = true/water.loop_mode = AudioStreamWAV.LOOP_FORWARD/' top_npc.gd
+          sed -i 's/var stream: AudioStream=/var stream: AudioStreamWAV=/' silence.gd
+          sed -i 's/stream\.loop=true/stream.loop_mode=AudioStreamWAV.LOOP_FORWARD/' silence.gd
+          sed -i 's/var stream: AudioStream =/var stream: AudioStreamWAV =/' audio_mix.gd
+          sed -i 's/stream\.loop = true/stream.loop_mode = AudioStreamWAV.LOOP_FORWARD/' audio_mix.gd
+
           # UI fallbacks for branding that is referenced by scripts but absent from Git.
           echo 'iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAEElEQVR42mPgkJAGIgYIBQAGNgDtNdodUgAAAABJRU5ErkJggg==' | base64 -d > branding/accueil_nacre.png
           cp branding/accueil_nacre.png branding/mascotte_nacre.png
