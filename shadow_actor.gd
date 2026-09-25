@@ -1,6 +1,6 @@
 extends Node3D
-## A lit, articulated character facing +Z. Details are merged per joint/material.
-## Reference cues: swept black hair, beard, wide eyes, crooked grin, knotted navy tee.
+## NACRE main Shadow: tall, unreadable humanoid silhouette with filament-like edges.
+## It must remain frightening through shape, motion and restraint, never by looking like a normal man.
 var torso: Node3D
 var head: Node3D
 var jaw: Node3D
@@ -63,19 +63,19 @@ func loft(parent: Node3D,rings: Array,mat: Material,wrinkles: float=0.0) -> void
 func build() -> void:
 	sphere.radius=0.5;sphere.height=1;sphere.radial_segments=20;sphere.rings=12
 	cylinder.top_radius=0.5;cylinder.bottom_radius=0.5;cylinder.height=1;cylinder.radial_segments=10
-	var skin:=material("skin","a89f8d")
-	var crease:=material("crease","605958")
-	var hair:=material("hair","10131c")
-	var hair_light:=material("hair_light","252a35")
-	var fabric:=material("fabric","263c58",true)
-	var stitch:=material("stitch","52667a")
-	var denim:=material("denim","1c2c40",true)
-	var rubber:=material("rubber","121b20")
-	var lip:=material("lip","68505b")
-	var mouth:=material("mouth","130e1d")
-	var tooth:=material("tooth","d0d1be");tooth.roughness=0.32
-	var wet:=material("tongue","a3657c");wet.roughness=0.37
-	var metal:=material("metal","687879");metal.metallic=0.75;metal.roughness=0.26
+	var skin:=material("skin","111517")
+	var crease:=material("crease","080a0b")
+	var hair:=material("hair","030506")
+	var hair_light:=material("hair_light","0b1012")
+	var fabric:=material("fabric","0b0f11",true)
+	var stitch:=material("stitch","171d1f")
+	var denim:=material("denim","090d0f",true)
+	var rubber:=material("rubber","030506")
+	var lip:=material("lip","08090a")
+	var mouth:=material("mouth","010203")
+	var tooth:=material("tooth","15191a");tooth.roughness=0.75
+	var wet:=material("tongue","07090a");wet.roughness=0.5
+	var metal:=material("metal","101516");metal.metallic=0.3;metal.roughness=0.7
 	torso=joint("Buste",Vector3.ZERO,self)
 	# Abdomen and shoulder anatomy; the shirt is gathered above the navel.
 	loft(torso,[[1.06,0.23,0.14],[1.22,0.245,0.155],[1.48,0.215,0.145],[1.75,0.26,0.165],[1.93,0.32,0.18],[2.13,0.32,0.16],[2.22,0.16,0.12]],skin)
@@ -107,7 +107,7 @@ func build() -> void:
 		oval(head,Vector3(side*0.121,0.085,0.221),Vector3(0.179,0.141,0.067),crease)
 		oval(head,Vector3(side*0.121,0.100,0.221),Vector3(0.141,0.109,0.085),tooth)
 		var iris:=MeshInstance3D.new();iris.name="Iris";iris.mesh=sphere;iris.position=Vector3(side*0.117,0.105,0.264);iris.scale=Vector3(0.056,0.066,0.017)
-		var eye_mat:=StandardMaterial3D.new();eye_mat.albedo_color=Color("617d79");eye_mat.roughness=0.23;eye_mat.emission_enabled=true;eye_mat.emission=Color("659797");eye_mat.emission_energy_multiplier=0.35
+		var eye_mat:=StandardMaterial3D.new();eye_mat.albedo_color=Color("d9ded8");eye_mat.roughness=0.18;eye_mat.emission_enabled=true;eye_mat.emission=Color("e7eee8");eye_mat.emission_energy_multiplier=0.75
 		iris.material_override=eye_mat;head.add_child(iris);eyes.append(iris)
 		oval(head,Vector3(side*0.117,0.105,0.275),Vector3(0.022,0.042,0.008),mouth)
 		oval(head,Vector3(side*0.117-0.012,0.12,0.281),Vector3(0.014,0.012,0.006),tooth)
@@ -189,15 +189,15 @@ func build() -> void:
 		var instance:=MeshInstance3D.new();instance.mesh=mesh;instance.material_override=entry.material;entry.parent.add_child(instance)
 		triangle_count+=mesh.surface_get_array_index_len(0)/3
 	batches.clear()
-	set_meta("reference_features",["cheveux_noirs","barbe","yeux_ecarquilles","sourire_langue","tee_shirt_noue","jean","boucle_oreille"])
+	set_meta("reference_features",["silhouette_noire","forme_humanoide","contours_filamenteux","yeux_blancs","visage_illisible"])
 	set_pressure(0);animate(0,0)
 
 func set_pressure(level: int) -> void:
 	pressure=clampf(float(level)/3.0,0,1)
 	for eye in eyes:
 		var mat: StandardMaterial3D=eye.material_override
-		mat.emission=Color("63958f").lerp(Color("c46572"),pressure)
-		mat.emission_energy_multiplier=lerpf(0.35,1.5,pressure)
+		mat.emission=Color("dfe7e2").lerp(Color("ffffff"),pressure)
+		mat.emission_energy_multiplier=lerpf(0.55,1.25,pressure)
 
 func animate(delta: float,speed: float) -> void:
 	clock+=delta;gait=move_toward(gait,clampf(speed/1.5,0,1),delta*5)

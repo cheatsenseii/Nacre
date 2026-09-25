@@ -30,6 +30,9 @@ var gift: Node3D
 var clock := 0.0
 var subtitle: Label
 var subtitle_time := 0.0
+var elder_clock := 0.0
+var elder_base_scale := Vector3.ONE
+var elder_light: OmniLight3D
 
 func make_stick(parent: Node3D) -> Node3D:
 	var node:=Node3D.new();parent.add_child(node)
@@ -52,14 +55,21 @@ func _ready() -> void:
 	model=preload("res://spore_creature.gd").new()
 	monster.add_child(model);model.build(game,0.5)
 	cap=game.atmosphere.mushroom.get_node("Chapeau")
-	mouth=game.combat.shape(self,center+Vector3(0,1.65,0.81),Vector3(1.05,0.65,0.18),Color(0.02,0.008,0.01),true);mouth.hide()
+	# The elder fungus belongs to the same damp ecosystem as the infected, but reads as ancient and intelligent.
+	if cap is MeshInstance3D:
+		var elder_mat:=StandardMaterial3D.new();elder_mat.albedo_color=Color("4b352d");elder_mat.roughness=0.92
+		preload("res://material_detail.gd").apply(elder_mat,false);cap.material_override=elder_mat
+	elder_base_scale=cap.scale
+	elder_light=OmniLight3D.new();elder_light.position=center+Vector3(0,2.3,0.5);elder_light.light_color=Color("756b4b");elder_light.light_energy=0.18;elder_light.omni_range=4.5;add_child(elder_light)
+	elder_light.add_to_group("nacre_dynamic_light");elder_light.set_meta("nacre_light_priority",1)
+	mouth=game.combat.shape(self,center+Vector3(0,1.65,0.81),Vector3(1.05,0.65,0.18),Color("090807"),true);mouth.hide()
 	eyes=Node3D.new();add_child(eyes);eyes.hide()
 	for x in [-0.36,0.36]:
-		game.combat.shape(eyes,center+Vector3(x,2.2,0.74),Vector3(0.38,0.27,0.15),Color("414632"),true)
-		var eye: MeshInstance3D=game.combat.shape(eyes,center+Vector3(x,2.2,0.82),Vector3(0.18,0.13,0.06),Color.WHITE,true)
-		eye.material_override=game.atmosphere.luminous(Color(0.65,0.83,0.32),0.65)
-		game.combat.shape(eyes,center+Vector3(x,2.2,0.856),Vector3(0.045,0.1,0.025),Color("121917"),true)
-	tendril=game.combat.shape(self,Vector3.ZERO,Vector3.ONE,Color(0.32,0.46,0.16),true);tendril.hide()
+		game.combat.shape(eyes,center+Vector3(x,2.2,0.74),Vector3(0.38,0.27,0.15),Color("4a4435"),true)
+		var eye: MeshInstance3D=game.combat.shape(eyes,center+Vector3(x,2.2,0.82),Vector3(0.18,0.13,0.06),Color("c9c2a4"),true)
+		eye.material_override=game.atmosphere.luminous(Color("b7aa78"),0.28)
+		game.combat.shape(eyes,center+Vector3(x,2.2,0.856),Vector3(0.045,0.1,0.025),Color("11100d"),true)
+	tendril=game.combat.shape(self,Vector3.ZERO,Vector3.ONE,Color("3d4632"),true);tendril.hide()
 	thanks=AudioStreamPlayer3D.new();thanks.position=center+Vector3(0,2,0)
 	thanks.stream=preload("res://audio/champignon_merci.wav");thanks.pitch_scale=0.82;thanks.unit_size=10;thanks.max_distance=35;add_child(thanks)
 	# La récompense n'est plus un cri incompréhensible : le grand champignon
@@ -68,8 +78,8 @@ func _ready() -> void:
 	cry.position=center+Vector3(0,2,0);cry.unit_size=12;cry.max_distance=40;cry.volume_db=-3;add_child(cry)
 	gift=Node3D.new();add_child(gift);gift.hide()
 	for i in range(7):
-		var seed: MeshInstance3D=game.combat.shape(gift,Vector3(sin(i*2.4)*0.22,cos(i*1.7)*0.18,sin(i)*0.15),Vector3.ONE*0.12,Color(0.65,0.9,0.25),true)
-		seed.material_override=game.atmosphere.luminous(Color(0.65,0.9,0.25),1.5)
+		var seed: MeshInstance3D=game.combat.shape(gift,Vector3(sin(i*2.4)*0.22,cos(i*1.7)*0.18,sin(i)*0.15),Vector3.ONE*0.12,Color("8d9562"),true)
+		seed.material_override=game.atmosphere.luminous(Color("8d9562"),0.65)
 	var layer:=CanvasLayer.new();layer.layer=7;add_child(layer)
 	subtitle=Label.new();subtitle.position=Vector2(80,550);subtitle.size=Vector2(1120,72)
 	subtitle.horizontal_alignment=HORIZONTAL_ALIGNMENT_CENTER;subtitle.add_theme_font_size_override("font_size",22)
@@ -130,12 +140,17 @@ func update(delta: float) -> void:
 	cry.stream_paused=game.paused or game.editor.active
 	subtitle.visible=not game.editor.active and not game.paused and active
 	if game.paused or game.editor.active:return
-	clock+=delta;cooldown=maxf(0,cooldown-delta);immunity=maxf(0,immunity-delta)
+	clock+=delta;elder_clock+=delta;cooldown=maxf(0,cooldown-delta);immunity=maxf(0,immunity-delta)
+	# Slow respiration keeps the elder fungus alive even before it reveals its face.
+	var breath:=1.0+sin(elder_clock*0.72)*0.018
+	cap.scale=elder_base_scale*Vector3(1.0+sin(elder_clock*0.61)*0.009,breath,1.0+sin(elder_clock*0.61)*0.009)
+	if elder_light!=null:elder_light.light_energy=0.16+0.055*(sin(elder_clock*0.72)*0.5+0.5)
 	subtitle_time=maxf(0,subtitle_time-delta)
 	if subtitle_time==0 and game.voice.current not in ["mushroom_thanks","mushroom_delice"]:subtitle.text=""
 	stick.rotation.z=-0.2+sin(cooldown/0.45*PI)*1.5
 	if feeding_time>=0 and not game.puzzle.solved:
 		feeding_time+=delta;mouth.show();eyes.show();tendril.show()
+		if elder_light!=null:elder_light.light_energy=0.28+absf(sin(feeding_time*2.4))*0.12
 		cap.rotation.z=-0.1+sin(feeding_time*3)*0.045
 		var target:=mouth.position
 		monster.position=corpse_start.lerp(target,smoothstep(0,4,feeding_time))
@@ -166,6 +181,7 @@ func update(delta: float) -> void:
 		gift.rotation.y=gift_time*4
 	if said_thanks:
 		var speaking: bool=(thanks.playing or cry.playing) and not game.paused
+		if elder_light!=null and speaking:elder_light.light_energy=0.24+absf(sin(clock*6))*0.1
 		mouth.visible=speaking
 		if speaking:
 			mouth.scale.y=0.5+absf(sin(clock*12))*0.55

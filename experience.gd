@@ -63,26 +63,26 @@ func hit(lethal: bool) -> void:
   game.pulse_post_fx(0.65 if lethal else 0.25,0.24 if lethal else 0.14)
 
 func current_goal() -> Array[String]:
- if game.silence!=null and game.silence.inside():return ["LA CHAMBRE DU SILENCE",game.silence.goal()]
+ if game.silence!=null and game.silence.inside():return ["CHAMBRE DU SILENCE",game.silence.goal()]
  if game.horrors!=null and game.horrors.inside():return ["SALLE DES HORREURS",game.horrors.goal()]
- if game.torture!=null and game.torture.inside():return ["SALLE DE TORTURE",game.torture.goal()]
- if game.simon.inside():return ["LA MÉMOIRE DU MAL","Reproduis l’ordre des symboles : 4 manches." if not game.simon.won else "Simon a cédé. Rejoins la salle de torture."]
- if not game.arrived:return ["LA DESCENTE","Le parc a fermé en 1998. Approche de l’entrée du toboggan."]
+ if game.torture!=null and game.torture.inside():return ["LOCAL ÉLECTRIQUE",game.torture.goal()]
+ if game.simon.inside():return ["ANIMATION AQUATIQUE", "Reproduis les quatre séquences." if not game.simon.won else "Le mécanisme a cédé. La porte suivante est libre."]
+ if not game.arrived:return ["DESCENTE 01","Approche du toboggan. Le fond reste invisible."]
  if game.combat.inside():
-  if not game.combat.equipped:return ["LA FOSSE DES RATÉS","Trouve l’épée dans l’alcôve à gauche."]
+  if not game.combat.equipped:return ["BASSIN DE MAINTENANCE","Une épée est coincée dans l’alcôve de gauche."]
   var alive:=0
   for enemy in game.combat.enemies:
    if int(enemy.get_meta("hp"))>0:alive+=1
-  return ["LA FOSSE DES RATÉS","Créatures restantes : %d / 3" % alive if alive>0 else "La voie est libre. Rejoins la sortie."]
+  return ["BASSIN DE MAINTENANCE","Il en reste %d." % alive if alive>0 else "Le bassin est calme. Rejoins la sortie."]
  if game.labyrinth.inside():
   var count: int=game.labyrinth.collected.count(true)
-  return ["LABYRINTHE INFERNAL","Nœuds : %d / 3. Fuis l’ombre : son contact est mortel." % count if count<3 else "Le cœur est ouvert. Fuis l’ombre et rejoins la sortie."]
+  return ["GALERIES SOUS LES BASSINS","Nœuds éveillés : %d / 3. Évite l’Ombre." % count if count<3 else "Les trois nœuds répondent. Trouve la sortie."]
  if game.feeding.inside() and game.puzzle.solved:
-  return ["LE REPAS","Le champignon est rassasié. Récupère ses spores et rejoins la porte du fond."]
+  return ["ANCIEN BASSIN","Le Grand Champignon t’a laissé quelque chose. Rejoins le fond du bassin."]
  if not game.puzzle.solved:
-  if not game.feeding.equipped:return ["LE REPAS","Ramasse le bâton à gauche de l’arrivée."]
-  return ["LE REPAS","Nourris le champignon : terrasse le monstre." if game.feeding.hp>0 else "Observe le champignon. Il prépare ta récompense."]
- return ["LA CHAMBRE DU SILENCE","Rejoins les alcôves et ferme les deux vannes bruyantes."]
+  if not game.feeding.equipped:return ["ANCIEN BASSIN","Un vieux bâton traîne près de l’arrivée."]
+  return ["ANCIEN BASSIN","La créature bloque le passage." if game.feeding.hp>0 else "Ne bouge pas. Le champignon vient de réagir."]
+ return ["CHAMBRE DU SILENCE","Les deux vannes alimentent encore le réseau. Coupe-les."]
 
 func _process(delta: float) -> void:
  layer.visible=not game.paused and not game.editor.active and not game.front_end.active and not game.sliding
@@ -94,12 +94,12 @@ func _process(delta: float) -> void:
   room=goal[0];room_title.text=room;title_time=3
   var quest_key := ""
   match room:
-   "LA DESCENTE":quest_key="mission"
-   "LE REPAS":quest_key="mushroom_quest"
-   "LA CHAMBRE DU SILENCE":quest_key="galleries_quest"
-   "LABYRINTHE INFERNAL":quest_key="labyrinth_quest"
-   "LA FOSSE DES RATÉS":quest_key="combat_quest"
-   "SALLE DE TORTURE":quest_key="torture_quest"
+   "DESCENTE 01":quest_key="mission"
+   "ANCIEN BASSIN":quest_key="mushroom_quest"
+   "CHAMBRE DU SILENCE":quest_key="galleries_quest"
+   "GALERIES SOUS LES BASSINS":quest_key="labyrinth_quest"
+   "BASSIN DE MAINTENANCE":quest_key="combat_quest"
+   "LOCAL ÉLECTRIQUE":quest_key="torture_quest"
   if quest_key!="" and quest_key!=announced_quest:
    announced_quest=quest_key;game.voice.say(quest_key)
  title_time=maxf(0,title_time-delta);room_title.modulate.a=minf(1,title_time)

@@ -32,17 +32,17 @@ func _ready() -> void:
 	game=get_parent();process_physics_priority=20
 	avatar=Node3D.new();game.player.add_child(avatar);avatar.name="Personnage"
 	avatar.scale.z=1.3
-	var suit:=Color("c48887");var trousers:=Color("30363d");var shoes:=Color("1c2128")
+	var suit:=Color("292b2d");var trousers:=Color("343536");var shoes:=Color("202124")
 	tailored(avatar,[[0.78,0.205,0.13],[0.84,0.215,0.14],[1.02,0.225,0.145],[1.22,0.25,0.14],[1.31,0.21,0.115],[1.37,0.09,0.085]],suit)
 	part(avatar,Vector3(0,0.74,0),Vector3(0.37,0.24,0.28),trousers)
 	# Collar, zipper, pockets and shoulder straps give the outfit a readable construction.
 	oval(avatar,Vector3(0,1.37,0),Vector3(0.14,0.16,0.14),Color("c49c7e"))
 	for x in [-0.07,0.07]:
-		var collar: MeshInstance3D=game.combat.shape(avatar,Vector3(x,1.36,-0.085),Vector3(0.1,0.08,0.06),Color("e0a8a3"))
+		var collar: MeshInstance3D=game.combat.shape(avatar,Vector3(x,1.36,-0.085),Vector3(0.1,0.08,0.06),Color("353638"))
 		collar.rotation.z=signf(x)*0.3
-	game.combat.shape(avatar,Vector3(0,1.07,-0.154),Vector3(0.012,0.49,0.012),Color("875a60"))
+	game.combat.shape(avatar,Vector3(0,1.07,-0.154),Vector3(0.012,0.49,0.012),Color("1b1c1d"))
 	for x in [-0.14,0.14]:
-		var pocket: MeshInstance3D=game.combat.shape(avatar,Vector3(x,0.88,-0.127),Vector3(0.13,0.018,0.02),Color("805a60"))
+		var pocket: MeshInstance3D=game.combat.shape(avatar,Vector3(x,0.88,-0.127),Vector3(0.13,0.018,0.02),Color("242526"))
 		pocket.rotation.z=signf(x)*0.32
 	build_outfit_details()
 	build_face()
@@ -59,11 +59,11 @@ func _ready() -> void:
 	left_arm=limb(Vector3(-0.3,1.28,0),0.52,suit)
 	right_arm=limb(Vector3(0.3,1.28,0),0.52,suit)
 	for arm in [left_arm,right_arm]:
-		part(arm,Vector3(0,-0.45,0),Vector3(0.154,0.065,0.18),Color("9f6d70"))
+		part(arm,Vector3(0,-0.45,0),Vector3(0.154,0.065,0.18),Color("303133"))
 		oval(arm,Vector3(0,-0.54,0),Vector3(0.12,0.17,0.12),Color("c59c7e"))
 	for arm in [left_arm,right_arm]:
 		for y in [-0.2,-0.24,-0.4]:
-			stroke(arm,[Vector3(-0.05,y,-0.06),Vector3(0,y-0.015,-0.087),Vector3(0.05,y,-0.06)],0.003,Color("a16d70"))
+			stroke(arm,[Vector3(-0.05,y,-0.06),Vector3(0,y-0.015,-0.087),Vector3(0.05,y,-0.06)],0.003,Color("252628"))
 		for x in [-0.034,-0.012,0.012,0.034]:
 			oval(arm,Vector3(x,-0.6,-0.015),Vector3(0.022,0.07,0.033),Color("c59c7e"))
 	build_maintenance_kit()

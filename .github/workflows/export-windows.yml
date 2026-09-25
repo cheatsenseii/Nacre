@@ -1,0 +1,175 @@
+name: Export NACRE Windows
+
+on:
+  push:
+    branches:
+      - refonte-billy-prologue
+    paths:
+      - '**'
+      - '.github/workflows/export-windows.yml'
+  workflow_dispatch:
+
+env:
+  GODOT_VERSION: "4.4.1"
+  EXPORT_NAME: "NACRE"
+  PROJECT_PATH: "."
+
+jobs:
+  export-windows:
+    name: Windows portable build
+    runs-on: ubuntu-24.04
+    container:
+      image: barichello/godot-ci:4.4.1
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Install Godot export templates
+        shell: bash
+        run: |
+          mkdir -p ~/.local/share/godot/export_templates/
+          mkdir -p ~/.config/
+          if [ -d /root/.config/godot ]; then mv /root/.config/godot ~/.config/godot; fi
+          if [ -d "/root/.local/share/godot/export_templates/${GODOT_VERSION}.stable" ]; then
+            mv "/root/.local/share/godot/export_templates/${GODOT_VERSION}.stable" ~/.local/share/godot/export_templates/
+          fi
+
+      - name: Repair missing project resources and parse blockers
+        shell: bash
+        run: |
+          set -e
+          mkdir -p audio/steps fonts branding
+
+          # Missing optional audio must never prevent the game from compiling.
+          find . -maxdepth 1 -name '*.gd' -print0 | xargs -0 sed -i -E 's#res://audio/([^"]+)\.ogg#res://audio/\1.wav#g'
+          find . -maxdepth 1 -name '*.gd' -print0 | xargs -0 sed -i 's/AudioStreamOggVorbis/AudioStream/g'
+          echo 'UklGRiYAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQIAAAAAAA==' | base64 -d > audio/_nacre_silence.wav
+          grep -rhoE 'res://audio/[A-Za-z0-9_%-]+\.wav' ./*.gd 2>/dev/null | sed 's#res://audio/##' | sort -u > /tmp/nacre_audio_refs.txt || true
+          while IFS= read -r name; do
+            [ -z "$name" ] && continue
+            case "$name" in *%*) continue ;; esac
+            [ -f "audio/$name" ] || cp audio/_nacre_silence.wav "audio/$name"
+          done < /tmp/nacre_audio_refs.txt
+
+          for name in goutte.wav pas.wav voix_depart.wav voix_bienvenue.wav voix_prologue.wav voix_erreur.wav chambre_des_spores.wav ambiance_eau.wav ambiance_machines.wav; do
+            [ -f "audio/$name" ] || cp audio/_nacre_silence.wav "audio/$name"
+          done
+          for i in 1 2 3 4; do cp audio/_nacre_silence.wav "audio/simon_${i}.wav"; done
+          for surface in dalle eau organique; do
+            for i in 01 02 03 04 05 06; do
+              cp audio/_nacre_silence.wav "audio/steps/${surface}_${i}.wav"
+            done
+          done
+
+          # The compatibility audio beds are WAVs. WAV loop control uses loop_mode, not loop.
+          sed -i 's/var water: AudioStream =/var water: AudioStreamWAV =/' top_npc.gd
+          sed -i 's/water\.loop = true/water.loop_mode = AudioStreamWAV.LOOP_FORWARD/' top_npc.gd
+          sed -i 's/var stream: AudioStream=/var stream: AudioStreamWAV=/' silence.gd
+          sed -i 's/stream\.loop=true/stream.loop_mode=AudioStreamWAV.LOOP_FORWARD/' silence.gd
+          sed -i 's/var stream: AudioStream =/var stream: AudioStreamWAV =/' audio_mix.gd
+          sed -i 's/stream\.loop = true/stream.loop_mode = AudioStreamWAV.LOOP_FORWARD/' audio_mix.gd
+
+          # UI fallbacks for branding that is referenced by scripts but absent from Git.
+          echo 'iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAIAAAD91JpzAAAAEElEQVR42mPgkJAGIgYIBQAGNgDtNdodUgAAAABJRU5ErkJggg==' | base64 -d > branding/accueil_nacre.png
+          cp branding/accueil_nacre.png branding/mascotte_nacre.png
+          cat > branding/nacre.svg <<'EOF'
+          <svg xmlns="http://www.w3.org/2000/svg" width="900" height="260" viewBox="0 0 900 260">
+            <rect width="900" height="260" rx="35" fill="#0a2528"/>
+            <text x="450" y="165" text-anchor="middle" font-family="sans-serif" font-size="120" font-weight="700" fill="#8ed8ce">NACRE</text>
+          </svg>
+          EOF
+
+          FONT_SRC="$(find /usr/share/fonts -type f -iname '*.ttf' 2>/dev/null | head -n 1 || true)"
+          if [ -z "$FONT_SRC" ]; then
+            echo "No system TTF found in Godot CI image"
+            exit 1
+          fi
+          cp "$FONT_SRC" fonts/Interface.ttf
+          cp "$FONT_SRC" fonts/Signaletique.ttf
+
+          # Godot 4.4 strict parser fixes in cosmetic systems.
+          sed -i 's/var ready:=false/var cinema_ready:=false/' horror_cinema.gd
+          sed -i 's/ready=true/cinema_ready=true/' horror_cinema.gd
+          sed -i 's/if not ready:return/if not cinema_ready:return/' horror_cinema.gd
+          sed -i 's/var candidate:=game.player.global_position/var candidate: Vector3 = game.player.global_position/' horror_cinema.gd
+          sed -i '/var root: Node3D=active_door.root;var lamp: OmniLight3D=active_door.lamp/a\		var amount: float = door_time\/0.75' horror_cinema.gd
+          sed -i '/^[[:space:]]*var amount:=door_time\/0.75$/d' horror_cinema.gd
+          sed -i 's/var x:=side\*9.8/var x: float = float(side) * 9.8/' room_storytelling.gd
+          sed -i 's/var x:=side\*9.9/var x: float = float(side) * 9.9/' room_storytelling.gd
+
+      - name: Import project and validate scripts
+        shell: bash
+        run: |
+          godot --headless --editor --path "$PROJECT_PATH" --quit-after 2
+
+      - name: Runtime smoke test
+        shell: bash
+        run: |
+          set +e
+          timeout 8s godot --headless --path "$PROJECT_PATH" --verbose 2>&1 | tee runtime-smoke.log
+          code=${PIPESTATUS[0]}
+          echo "$code" > runtime-smoke-exit-code.txt
+          set -e
+          echo "===== FULL GODOT RUNTIME LOG ====="
+          cat runtime-smoke.log || true
+          echo "===== END GODOT RUNTIME LOG ====="
+          if [ "$code" -ne 0 ] && [ "$code" -ne 124 ]; then
+            echo "Godot exited unexpectedly with code $code"
+            exit "$code"
+          fi
+          if grep -E "SCRIPT ERROR|Parse Error|Parser Error|Invalid call|Invalid access|Invalid get index|ERROR:" runtime-smoke.log; then
+            echo "Runtime script error detected"
+            exit 1
+          fi
+
+      - name: Upload runtime smoke log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: NACRE-Runtime-Smoke-Log
+          path: |
+            runtime-smoke.log
+            runtime-smoke-exit-code.txt
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Export Windows x64
+        shell: bash
+        run: |
+          mkdir -p build/windows
+          godot --headless --path "$PROJECT_PATH" --export-release "Windows Desktop" "$(pwd)/build/windows/${EXPORT_NAME}.exe"
+          test -f "build/windows/${EXPORT_NAME}.exe"
+
+      - name: Add launcher note
+        shell: bash
+        run: |
+          cat > build/windows/LIS_MOI.txt <<'EOF'
+          NACRE - VERSION WINDOWS PORTABLE
+
+          1. Extraire tout le ZIP dans un dossier.
+          2. Double-cliquer sur NACRE.exe.
+          3. Aucun editeur Godot n'est necessaire pour jouer.
+
+          Si le jeu se ferme immediatement, lance DIAGNOSTIC_NACRE.bat et envoie le fichier nacre_log.txt.
+          EOF
+          cat > build/windows/DIAGNOSTIC_NACRE.bat <<'EOF'
+          @echo off
+          cd /d "%~dp0"
+          echo Lancement de NACRE en mode diagnostic...
+          NACRE.exe --verbose > nacre_log.txt 2>&1
+          echo.
+          echo Le journal a ete cree ici :
+          echo %~dp0nacre_log.txt
+          echo.
+          pause
+          EOF
+
+      - name: Upload Windows build
+        uses: actions/upload-artifact@v4
+        with:
+          name: NACRE-Windows-Portable
+          path: build/windows/
+          if-no-files-found: error
+          retention-days: 14
