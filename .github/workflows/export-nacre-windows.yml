@@ -54,3 +54,5 @@ jobs:
           path: build/windows/
           if-no-files-found: error
           retention-days: 14
+
+# Build trigger: 2026-09-25
