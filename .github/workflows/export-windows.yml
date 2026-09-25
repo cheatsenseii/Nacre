@@ -42,9 +42,7 @@ jobs:
           set -e
           mkdir -p audio fonts branding
 
-          # This repository references a few audio files that were never committed.
-          # Use WAV compatibility placeholders so a missing optional sound can never stop the whole game from compiling.
-          find . -maxdepth 1 -name '*.gd' -print0 | xargs -0 sed -i -E 's#res://audio/([^"'"']+)\.ogg#res://audio/\1.wav#g'
+          find . -maxdepth 1 -name '*.gd' -print0 | xargs -0 sed -i -E 's#res://audio/([^"]+)\.ogg#res://audio/\1.wav#g'
 
           python3 - <<'PY'
           from pathlib import Path
@@ -72,7 +70,6 @@ jobs:
           for rel in sorted(refs):
               silent_wav(root / 'audio' / rel)
 
-          # Some files are loaded dynamically and therefore are not visible to preload scanning.
           for name in [
               'goutte.wav','pas.wav','voix_depart.wav','voix_bienvenue.wav','voix_prologue.wav',
               'voix_erreur.wav','chambre_des_spores.wav','ambiance_eau.wav','ambiance_machines.wav'
@@ -97,7 +94,6 @@ jobs:
           (root/'branding'/'nacre.svg').write_text('''<svg xmlns="http://www.w3.org/2000/svg" width="900" height="260" viewBox="0 0 900 260"><rect width="900" height="260" rx="35" fill="#0a2528"/><text x="450" y="165" text-anchor="middle" font-family="sans-serif" font-size="120" font-weight="700" fill="#8ed8ce">NACRE</text></svg>''', encoding='utf-8')
           PY
 
-          # Give Godot real font files for UI preloads. Prefer DejaVu, otherwise use the first system TTF available.
           FONT_SRC="$(find /usr/share/fonts -type f -iname '*.ttf' 2>/dev/null | head -n 1 || true)"
           if [ -z "$FONT_SRC" ]; then
             echo "No system TTF found in Godot CI image"
@@ -106,7 +102,6 @@ jobs:
           cp "$FONT_SRC" fonts/Interface.ttf
           cp "$FONT_SRC" fonts/Signaletique.ttf
 
-          # Godot 4.4 parse fixes in cosmetic scripts.
           sed -i 's/var ready:=false/var cinema_ready:=false/' horror_cinema.gd
           sed -i 's/ready=true/cinema_ready=true/' horror_cinema.gd
           sed -i 's/if not ready:return/if not cinema_ready:return/' horror_cinema.gd
