@@ -40,11 +40,11 @@ jobs:
         shell: bash
         run: |
           set -e
-          mkdir -p audio fonts branding
+          mkdir -p audio/steps fonts branding
 
-          # The repository lost several optional sound resources. Convert old OGG references
-          # to WAV, then give every static WAV reference a valid silent fallback.
+          # Missing optional audio must never prevent the game from compiling.
           find . -maxdepth 1 -name '*.gd' -print0 | xargs -0 sed -i -E 's#res://audio/([^"]+)\.ogg#res://audio/\1.wav#g'
+          find . -maxdepth 1 -name '*.gd' -print0 | xargs -0 sed -i 's/AudioStreamOggVorbis/AudioStream/g'
           echo 'UklGRiYAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQIAAAAAAA==' | base64 -d > audio/_nacre_silence.wav
           grep -rhoE 'res://audio/[A-Za-z0-9_%-]+\.wav' ./*.gd 2>/dev/null | sed 's#res://audio/##' | sort -u > /tmp/nacre_audio_refs.txt || true
           while IFS= read -r name; do
@@ -52,8 +52,15 @@ jobs:
             case "$name" in *%*) continue ;; esac
             [ -f "audio/$name" ] || cp audio/_nacre_silence.wav "audio/$name"
           done < /tmp/nacre_audio_refs.txt
+
           for name in goutte.wav pas.wav voix_depart.wav voix_bienvenue.wav voix_prologue.wav voix_erreur.wav chambre_des_spores.wav ambiance_eau.wav ambiance_machines.wav; do
             [ -f "audio/$name" ] || cp audio/_nacre_silence.wav "audio/$name"
+          done
+          for i in 1 2 3 4; do cp audio/_nacre_silence.wav "audio/simon_${i}.wav"; done
+          for surface in dalle eau organique; do
+            for i in 01 02 03 04 05 06; do
+              cp audio/_nacre_silence.wav "audio/steps/${surface}_${i}.wav"
+            done
           done
 
           # UI fallbacks for branding that is referenced by scripts but absent from Git.
@@ -74,7 +81,7 @@ jobs:
           cp "$FONT_SRC" fonts/Interface.ttf
           cp "$FONT_SRC" fonts/Signaletique.ttf
 
-          # Godot 4.4 strict parser fixes in two cosmetic systems.
+          # Godot 4.4 strict parser fixes in cosmetic systems.
           sed -i 's/var ready:=false/var cinema_ready:=false/' horror_cinema.gd
           sed -i 's/ready=true/cinema_ready=true/' horror_cinema.gd
           sed -i 's/if not ready:return/if not cinema_ready:return/' horror_cinema.gd
